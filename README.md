@@ -1,4 +1,4 @@
-# pstudy
+# eijiro-util
 
 ## Pre Build
 
@@ -8,8 +8,8 @@ sudo apt-get install libicu-dev zlib1g-dev
 
 ## Execute
 
-* Run `stack exec -- pstudy-exe` to see "We're inside the application!"
-* With `stack exec -- pstudy-exe --verbose` you will see the same message, with more logging.
+* Run `stack exec -- eijiro-util` to see "We're inside the application!"
+* With `stack exec -- eijiro-util --verbose` you will see the same message, with more logging.
 
 ## Run tests
 
