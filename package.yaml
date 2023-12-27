@@ -1,0 +1,82 @@
+name:                eijiro-util
+synopsis:            Eijiro dictionary data utility
+version:             0.1.0.0
+github:              githubuser/pstudy
+license:             BSD-3-Clause
+author:              Author name here
+maintainer:          example@example.com
+copyright:           2023 Author name here
+
+extra-source-files:
+- README.md
+- CHANGELOG.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on Github at <https://github.com/githubuser/pstudy#readme>
+
+dependencies:
+- base >= 4.11 && < 10
+- rio >= 0.1.12.0
+- bytestring
+- conduit
+- conduit-extra
+- megaparsec
+- regex-tdfa
+- text
+- text-icu
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+- -XOverloadedStrings
+- -XOverloadedRecordDot
+- -XTypeApplications
+- -XNoImplicitPrelude
+- -XNumericUnderscores
+- -XGADTs
+- -XScopedTypeVariables
+- -XStandaloneDeriving
+- -XLambdaCase
+
+library:
+  source-dirs: src
+
+executables:
+  eijiro-util:
+    main:                Main.hs
+    source-dirs:         app
+    dependencies:
+    - eijiro-util
+    - optparse-simple
+
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+
+tests:
+  eijiro-util-test:
+    main:                Spec.hs
+    source-dirs:         test
+    dependencies:
+    - eijiro-util
+    - hspec
+
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N

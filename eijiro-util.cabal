@@ -1,0 +1,103 @@
+cabal-version: 2.2
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           eijiro-util
+version:        0.1.0.0
+synopsis:       Eijiro dictionary data utility
+description:    Please see the README on Github at <https://github.com/githubuser/pstudy#readme>
+homepage:       https://github.com/githubuser/pstudy#readme
+bug-reports:    https://github.com/githubuser/pstudy/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2023 Author name here
+license:        BSD-3-Clause
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/pstudy
+
+library
+  exposed-modules:
+      AnalyseService
+      ConvertPstudyService
+      ConvertUtf8Service
+      Dict
+      DictionaryParser
+      HeaderWordParser
+      Import
+      Parser
+      Types
+  other-modules:
+      Paths_eijiro_util
+  autogen-modules:
+      Paths_eijiro_util
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -XOverloadedRecordDot -XTypeApplications -XNoImplicitPrelude -XNumericUnderscores -XGADTs -XScopedTypeVariables -XStandaloneDeriving -XLambdaCase
+  build-depends:
+      base >=4.11 && <10
+    , bytestring
+    , conduit
+    , conduit-extra
+    , megaparsec
+    , regex-tdfa
+    , rio >=0.1.12.0
+    , text
+    , text-icu
+  default-language: Haskell2010
+
+executable eijiro-util
+  main-is: Main.hs
+  other-modules:
+      Paths_eijiro_util
+  autogen-modules:
+      Paths_eijiro_util
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -XOverloadedRecordDot -XTypeApplications -XNoImplicitPrelude -XNumericUnderscores -XGADTs -XScopedTypeVariables -XStandaloneDeriving -XLambdaCase -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.11 && <10
+    , bytestring
+    , conduit
+    , conduit-extra
+    , eijiro-util
+    , megaparsec
+    , optparse-simple
+    , regex-tdfa
+    , rio >=0.1.12.0
+    , text
+    , text-icu
+  default-language: Haskell2010
+
+test-suite eijiro-util-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      AnalyseServiceSpec
+      Paths_eijiro_util
+  autogen-modules:
+      Paths_eijiro_util
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -XOverloadedRecordDot -XTypeApplications -XNoImplicitPrelude -XNumericUnderscores -XGADTs -XScopedTypeVariables -XStandaloneDeriving -XLambdaCase -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.11 && <10
+    , bytestring
+    , conduit
+    , conduit-extra
+    , eijiro-util
+    , hspec
+    , megaparsec
+    , regex-tdfa
+    , rio >=0.1.12.0
+    , text
+    , text-icu
+  default-language: Haskell2010
