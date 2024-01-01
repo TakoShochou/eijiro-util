@@ -7,8 +7,8 @@ import Conduit
 import qualified Data.Conduit.Binary as CB
 import qualified Data.Text.ICU.Convert as ICU
 import qualified Data.Text.IO as T
+import Text.Show.Unicode (uprint)
 import DictionaryParser as P
-import Dict
 
 runConvertPstudyService :: (FilePath, Natural) -> RIO App ()
 runConvertPstudyService (path, level) = do
@@ -24,7 +24,7 @@ runConvertPstudyService (path, level) = do
     .| mapMC (\input -> liftIO (T.putStrLn input) >> pure input)
     .| mapC P.runDictionaryParser
     .| mapM_C (\case
-        Right a -> liftIO . T.putStrLn . tshow @(DictHeader Text, DictAttr Text) $ a
+        Right a -> liftIO . uprint $ a
         Left e -> liftIO . T.putStrLn $ P.tshowParseErrorBundle e
     )
 

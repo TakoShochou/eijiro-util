@@ -12,13 +12,16 @@ import RIO
 
 data DictHeader a where
   Word :: Text -> DictHeader a
-  Meta :: Text -> DictHeader a -- TODO part of speech, index, thier mixed patters...
+  Index :: Natural -> DictHeader a ->  DictHeader a
+  Label :: Text -> DictHeader a -> DictHeader a -- ラベル１・ラベル２
+  LabelIndex :: Natural -> DictHeader a -> DictHeader a
+  LabelIndexIndex :: Natural -> DictHeader a -> DictHeader a
 
 data DictAttr a where
   Translated :: Text -> DictAttr a
-  Svl :: Natural -> DictAttr a -> DictAttr a
-  Pron :: Text -> DictAttr a -> DictAttr a
-  Mispron :: Bool -> DictAttr a -> DictAttr a
+  Svl :: Natural -> DictAttr a
+  Pron :: Text -> DictAttr a
+  Mispron :: Bool -> DictAttr a
 
 deriving instance Show a => Show (DictHeader a)
 deriving instance Show a => Show (DictAttr a)
