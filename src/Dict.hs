@@ -11,17 +11,18 @@ module Dict (
 import RIO
 
 data DictHeader a where
-  Word :: Text -> DictHeader a
+  Word :: Text -> DictHeader a -- unit element
   Index :: Natural -> DictHeader a ->  DictHeader a
   Label :: Text -> DictHeader a -> DictHeader a -- ラベル１・ラベル２
   LabelIndex :: Natural -> DictHeader a -> DictHeader a
   LabelIndexIndex :: Natural -> DictHeader a -> DictHeader a
 
 data DictAttr a where
-  Translated :: Text -> DictAttr a
-  Svl :: Natural -> DictAttr a
-  Pron :: Text -> DictAttr a
-  Mispron :: Bool -> DictAttr a
+  Ignore :: (Text, Text) -> DictAttr a -> DictAttr a -- ignored header
+  Translated :: Text -> DictAttr a -- unit element
+  Svl :: Natural -> DictAttr a -> DictAttr a
+  Pron :: Text -> DictAttr a -> DictAttr a
+  Mispron :: Text -> DictAttr a -> DictAttr a
 
 deriving instance Show a => Show (DictHeader a)
 deriving instance Show a => Show (DictAttr a)

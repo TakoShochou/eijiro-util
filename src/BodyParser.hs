@@ -1,4 +1,4 @@
-module BodyParser (pTranslated, pAttrs) where
+module BodyParser (pBody) where
 
 import RIO
 import RIO.Char (isPrint)
@@ -9,48 +9,75 @@ import qualified Text.Megaparsec as P
 import Parser (Parser)
 import Dict
 
+pBody :: Parser (DictAttr a)
+pBody = do
+  translated <- Translated <$> pTranslated
+  reduce fn translated <$> pAttrs
+  where
+    reduce
+      :: (DictAttr a -> (DictAttr a -> DictAttr a) -> DictAttr a) -- fold function
+      -> DictAttr a -- initial value
+      -> [DictAttr a -> DictAttr a] -- input values to be reduced
+      -> DictAttr a
+    reduce _ accum [] = accum
+    reduce f accum (x:xs) = reduce f (f accum x) xs
+    fn :: DictAttr a -> (DictAttr a -> DictAttr a) -> DictAttr a
+    fn accum x = x accum
+
 pTranslated :: Parser Text
 pTranslated = do
-  T.pack <$> P.many (P.notFollowedBy (P.single '【') >> P.try (P.satisfy isJapanese))
+  T.pack <$> P.many (P.notFollowedBy (P.single '【') >> P.try (pAttrChar []))
 
-pAttrs :: Parser ([DictAttr a])
-pAttrs = P.many pAttr -- <* (P.try (void (P.single '、')) <|> void P.eof)
+pAttrs :: Parser [DictAttr a -> DictAttr a]
+pAttrs = p
+  where
+    p :: Parser [DictAttr a -> DictAttr a]
+    p = P.many $ pAttr <* (P.try P.eof <|> sep)
+    sep = void $ P.single '、'
 
-pAttr :: Parser (DictAttr a)
+pAttr :: Parser (DictAttr a -> DictAttr a)
 pAttr = do
   header <- pAttrHeader
-  pure $ Svl 12
-  {-
-  body <- T.pack <$> P.many pAttrChar
+  body <- pAttrBody
   case header of
-    "レベル" -> Svl <$> case readMaybe @(Maybe Natural) body of
-      Nothing -> P.fancyFailure (singleton (P.ErrorFail "invalid value of レベル attr"))
-      Just a -> a
-    "発音" -> Pron <$> body
-    "発音！" -> case Mispron $ readMaybe @(Maybe Bool) body of
-      Nothing -> P.fancyFailure (singleton (P.ErrorFail "invalid value of 発音！"))
-      Just a -> Mispron <$> a
-    _ -> P.fancyFailure (singleton (P.ErrorFail "invalid attr header. expect: レベル 発音 発音！"))
-  -}
+    "レベル" ->
+      case readMaybe @Natural body of
+        Just a -> pure $ Svl a
+        Nothing -> invalid header body
+    "発音" -> pure . Pron . T.pack $ body
+    "発音！" -> pure . Mispron . T.pack $ body
+    _ -> pure $ Ignore (header, T.pack body)
+  where
+    invalid header body = P.fancyFailure
+      (singleton (P.ErrorFail ("invalid value of 【" <> T.unpack header <> "】 : " <> body)))
 
 pAttrHeader :: Parser Text
 pAttrHeader = do
   void $ P.single '【'
-  header <- T.pack <$> P.many pAttrChar <* P.notFollowedBy (P.single '】')
-  void $ P.single '】'
+  header <- T.pack <$> P.many (pAttrChar ['】'])
+  void $  P.single '】'
   pure header
+
+pAttrBody :: Parser String
+pAttrBody = P.many $ pAttrChar ['、']
+
+pAttrChar :: [Char] -> Parser Char
+pAttrChar banned = P.satisfy (without banned isAttrChar) P.<?> "attr_char"
+
+pJapanese :: Parser Char
+pJapanese = P.satisfy isJapanese
+
+without :: [Char] -> (Char -> Bool) -> Char -> Bool
+without banned predicate c = notElem c banned && predicate c
+
+isAttrChar :: Char -> Bool
+isAttrChar a = isJapanese a || isPrint a
 
 -- 和風の句読点（3000-303f）
 -- ひらがな（3040-309f）
 -- カタカナ（30a0-30ff）
 -- 全角ローマ字および半角カタカナ（ff00-ffef）
 -- CJK unifed表意文字-共通および非共通漢字（4e00-9faf）
-pAttrChar :: Parser Char
-pAttrChar = P.satisfy isAttrChar P.<?> "attr_char"
-
-isAttrChar :: Char -> Bool
-isAttrChar a = isJapanese a || isPrint a
-
 isJapanese :: Char -> Bool
 isJapanese a
   | ('\x3000' <= a) && (a <= '\x303f') = True

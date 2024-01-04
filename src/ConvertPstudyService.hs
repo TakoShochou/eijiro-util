@@ -3,6 +3,7 @@ module ConvertPstudyService (
 ) where
 
 import Import
+import qualified RIO.Text as T
 import Conduit
 import qualified Data.Conduit.Binary as CB
 import qualified Data.Text.ICU.Convert as ICU
@@ -21,10 +22,11 @@ runConvertPstudyService (path, level) = do
   runConduitRes $ sourceFile path
     .| CB.lines
     .| mapC (ICU.toUnicode conv)
+    .| mapC (T.strip)
     .| mapMC (\input -> liftIO (T.putStrLn input) >> pure input)
     .| mapC P.runDictionaryParser
     .| mapM_C (\case
-        Right a -> liftIO . uprint $ a
+        Right a -> (liftIO . uprint $ a) >> (liftIO . T.putStrLn $ "")
         Left e -> liftIO . T.putStrLn $ P.tshowParseErrorBundle e
     )
 
