@@ -1,4 +1,6 @@
 module DictionaryParser (
+  ParserResult,
+  DictEntry,
   runDictionaryParser,
   tshowParseErrorBundle,
 ) where
@@ -10,6 +12,11 @@ import Parser (Parser)
 import HeaderParser (pHeader)
 import BodyParser (pBody)
 import Dict (DictHeader(..), DictAttr(..))
+
+type DictEntry = (DictHeader Text, DictAttr Text)
+type ParserResult = Either
+  (P.ParseErrorBundle Text Void)
+  DictEntry
 
 runDictionaryParser :: Text -> Either (P.ParseErrorBundle Text Void) (DictHeader Text, DictAttr Text)
 runDictionaryParser = P.runParser parser "DictionaryParser"

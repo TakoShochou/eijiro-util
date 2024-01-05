@@ -1,9 +1,9 @@
 module Dict (
   DictHeader (..),
   DictAttr (..),
-  -- word,
+  word,
   -- translated,
-  -- svl,
+  svl,
   -- phonetics,
   -- mispronounce,
 ) where
@@ -27,18 +27,29 @@ data DictAttr a where
 deriving instance Show a => Show (DictHeader a)
 deriving instance Show a => Show (DictAttr a)
 
-{-
-word :: Dict a -> Text
+word :: DictHeader a -> Text
 word = loop
   where
-    loop :: Dict a -> Text
+    loop :: DictHeader a -> Text
     loop = \case
       Word a -> a
-      Translated _ a -> loop a
-      Svl _ a -> loop a
+      Index _ a -> loop a
+      Label _ a -> loop a
+      LabelIndex _ a -> loop a
+      LabelIndexIndex _ a -> loop a
+
+svl :: DictAttr a -> Maybe Natural
+svl = loop
+  where
+    loop :: DictAttr a -> Maybe Natural
+    loop = \case
+      Ignore _ a -> loop a
+      Translated _ -> Nothing
+      Svl hit _ -> Just hit
       Pron _ a -> loop a
       Mispron _ a -> loop a
 
+{-
 translated :: Dict a -> Maybe Text
 translated = loop
   where

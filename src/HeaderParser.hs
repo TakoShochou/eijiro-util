@@ -88,7 +88,7 @@ pLabelIndexIndex = do
   pure $ LabelIndexIndex index2 . LabelIndex index1 <$> Label label
 
 pWord :: Parser (DictHeader a)
-pWord = Word <$> p4
+pWord = Word . T.strip <$> p4
   where
     p4 :: Parser Text
     p4 = T.concat <$> p3
