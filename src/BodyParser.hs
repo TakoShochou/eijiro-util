@@ -1,6 +1,7 @@
 module BodyParser (pBody) where
 
 import RIO
+import RIO.List (headMaybe)
 import RIO.Char (isPrint)
 import RIO.Set (singleton)
 import qualified RIO.Text as T
@@ -24,9 +25,13 @@ pBody = do
     fn :: DictAttr a -> (DictAttr a -> DictAttr a) -> DictAttr a
     fn accum x = x accum
 
+-- TODO take account of example sentences
 pTranslated :: Parser Text
 pTranslated = do
-  T.pack <$> P.many (P.notFollowedBy (P.single '【') >> P.try (pAttrChar []))
+  txt <- T.pack <$> P.many (P.notFollowedBy (P.single '【') >> P.try (pAttrChar []))
+  pure $ case headMaybe $ T.split (=='■') txt of
+    Nothing -> ""
+    Just a -> a
 
 pAttrs :: Parser [DictAttr a -> DictAttr a]
 pAttrs = p
@@ -63,9 +68,6 @@ pAttrBody = P.many $ pAttrChar ['、']
 
 pAttrChar :: [Char] -> Parser Char
 pAttrChar banned = P.satisfy (without banned isAttrChar) P.<?> "attr_char"
-
-pJapanese :: Parser Char
-pJapanese = P.satisfy isJapanese
 
 without :: [Char] -> (Char -> Bool) -> Char -> Bool
 without banned predicate c = notElem c banned && predicate c

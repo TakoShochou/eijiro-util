@@ -33,16 +33,22 @@ main = do
     analyseCommand = addCommand "analyse"
       "List all the characters and their code points in the header words of the Eijiro dictionary data"
       runAnalyseService
-      $ (,) <$> pPath <*> pTarget
+      $ (,) <$> pReadPath <*> pTarget
     convertUtf8Command = addCommand "utf8"
       "Convert Eijiro dictionary encoding from Shift JIS to UTF8"
       runConvertUtf8Service
-      $ (,,) <$> pPath <*> pTakeFrom <*> pTakeTo
+      $ (,,) <$> pReadPath <*> pTakeFrom <*> pTakeTo
     convertPstudyCommand = addCommand "pstudy"
       "Convert Eijiro dictionary data to Pstduy data"
       runConvertPstudyService
-      $ (,) <$> pPath <*> pConvertLevel
-    pPath = strArgument (metavar "FILE_PATH" <> help "Eijiro data file")
+      $ (,,) <$> pReadPath <*> pWritePath <*> pConvertLevel
+    pReadPath = strArgument (metavar "FILE_PATH" <> help "Eijiro data file")
+    pWritePath = strOption
+      $ short 'f'
+      <> long "file"
+      <> value ""
+      <> metavar "FILE_PATH"
+      <> help "specify pstudy file path to be saved"
     pTarget = strOption
       $  short 't'
       <> long "target"

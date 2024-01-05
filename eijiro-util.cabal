@@ -54,6 +54,7 @@ library
     , text
     , text-icu
     , unicode-show
+    , utf8-string
   default-language: Haskell2010
 
 executable eijiro-util
@@ -78,6 +79,7 @@ executable eijiro-util
     , text
     , text-icu
     , unicode-show
+    , utf8-string
   default-language: Haskell2010
 
 test-suite eijiro-util-test
@@ -104,4 +106,5 @@ test-suite eijiro-util-test
     , text
     , text-icu
     , unicode-show
+    , utf8-string
   default-language: Haskell2010

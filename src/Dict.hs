@@ -27,6 +27,8 @@ data DictAttr a where
 deriving instance Show a => Show (DictHeader a)
 deriving instance Show a => Show (DictAttr a)
 
+-- DictHeader accessors
+
 word :: DictHeader a -> Text
 word = loop
   where
@@ -38,6 +40,7 @@ word = loop
       LabelIndex _ a -> loop a
       LabelIndexIndex _ a -> loop a
 
+-- DictAttr accessors
 svl :: DictAttr a -> Maybe Natural
 svl = loop
   where
@@ -48,45 +51,3 @@ svl = loop
       Svl hit _ -> Just hit
       Pron _ a -> loop a
       Mispron _ a -> loop a
-
-{-
-translated :: Dict a -> Maybe Text
-translated = loop
-  where
-    loop = \case
-      Word _ -> Nothing
-      Translated a _ -> Just a
-      Svl _ a -> loop a
-      Pron _ a -> loop a
-      Mispron _ a -> loop a
-
-svl :: Dict a -> Maybe Natural
-svl = loop
-  where
-    loop = \case
-      Word _ -> Nothing
-      Translated _ a -> loop a
-      Svl a _ -> Just a
-      Pron _ a -> loop a
-      Mispron _ a -> loop a
-
-phonetics :: Dict a -> Maybe Text
-phonetics = loop
-  where
-    loop = \case
-      Word _ -> Nothing
-      Translated _ a -> loop a
-      Svl _ a -> loop a
-      Pron a _ -> Just a
-      Mispron _ a -> loop a
-
-mispronounce :: Dict a -> Maybe Bool
-mispronounce = loop
-  where
-    loop = \case
-      Word _ -> Nothing
-      Translated _ a -> loop a
-      Svl _ a -> loop a
-      Pron _ a -> loop a
-      Mispron a _ -> Just a
--}

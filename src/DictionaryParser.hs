@@ -14,6 +14,7 @@ import BodyParser (pBody)
 import Dict (DictHeader(..), DictAttr(..))
 
 type DictEntry = (DictHeader Text, DictAttr Text)
+
 type ParserResult = Either
   (P.ParseErrorBundle Text Void)
   DictEntry
