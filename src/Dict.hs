@@ -1,14 +1,18 @@
 module Dict (
+  DictEntry,
   DictHeader (..),
   DictAttr (..),
   word,
-  -- translated,
+  label,
+  translated,
   svl,
   -- phonetics,
   -- mispronounce,
 ) where
 
 import RIO
+
+type DictEntry = (DictHeader Text, DictAttr Text)
 
 data DictHeader a where
   Word :: Text -> DictHeader a -- unit element
@@ -40,7 +44,29 @@ word = loop
       LabelIndex _ a -> loop a
       LabelIndexIndex _ a -> loop a
 
+label :: DictHeader a -> Text
+label = loop
+  where
+    loop :: DictHeader a -> Text
+    loop = \case
+      Word a -> ""
+      Index _ a -> loop a
+      Label a _ -> a
+      LabelIndex _ a -> loop a
+      LabelIndexIndex _ a -> loop a
+
 -- DictAttr accessors
+
+translated :: DictAttr a -> Text
+translated = loop
+  where
+    loop = \case
+      Ignore _ a -> loop a
+      Translated a -> a
+      Svl _ a -> loop a
+      Pron _ a -> loop a
+      Mispron _ a -> loop a
+
 svl :: DictAttr a -> Maybe Natural
 svl = loop
   where

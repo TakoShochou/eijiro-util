@@ -1,6 +1,5 @@
 module DictionaryParser (
   ParserResult,
-  DictEntry,
   runDictionaryParser,
   tshowParseErrorBundle,
 ) where
@@ -11,9 +10,7 @@ import qualified Text.Megaparsec as P
 import Parser (Parser)
 import HeaderParser (pHeader)
 import BodyParser (pBody)
-import Dict (DictHeader(..), DictAttr(..))
-
-type DictEntry = (DictHeader Text, DictAttr Text)
+import Dict (DictEntry, DictHeader(..), DictAttr(..))
 
 type ParserResult = Either
   (P.ParseErrorBundle Text Void)
