@@ -5,9 +5,9 @@ import qualified RIO.Text as T
 import qualified Text.Megaparsec as P
 import qualified Text.Megaparsec.Char.Lexer as PCL
 import Parser (Parser)
-import Dict
+import qualified Dict as D
 
-pHeader :: Parser (DictHeader a)
+pHeader :: Parser (D.DictHeader a)
 pHeader = do
   pEntryMark
   w <- pWord
@@ -23,30 +23,30 @@ pEntryMark = void $ P.single '■'
 pDelim :: Parser ()
 pDelim = void $ P.chunk " : "
 
-pHeaderLabel :: Parser (DictHeader a -> DictHeader a)
+pHeaderLabel :: Parser (D.DictHeader a -> D.DictHeader a)
 pHeaderLabel = P.try pIndex <|> P.try pIndexLabel <|> P.try pIndexLabelIndex
   <|> P.try pLabel <|> P.try pLabelIndex <|> pLabelIndexIndex
 
 -- {123}
-pIndex :: Parser (DictHeader a -> DictHeader a)
+pIndex :: Parser (D.DictHeader a -> D.DictHeader a)
 pIndex = do
   void $ P.single '{'
   index <- PCL.decimal
   void $ P.single '}'
-  pure $ Index index
+  pure $ D.Index index
 
 -- {1-ラベル}
-pIndexLabel :: Parser (DictHeader a -> DictHeader a)
+pIndexLabel :: Parser (D.DictHeader a -> D.DictHeader a)
 pIndexLabel = do
   void $ P.single '{'
   index <- PCL.decimal
   void $ P.single '-'
   label <- T.concat <$> P.some (P.notFollowedBy (P.single '-') >> pText)
   void $ P.single '}'
-  pure $ Index index <$> Label label
+  pure $ D.Index index <$> D.Label label
 
 -- {123-ラベル-456}
-pIndexLabelIndex :: Parser (DictHeader a -> DictHeader a)
+pIndexLabelIndex :: Parser (D.DictHeader a -> D.DictHeader a)
 pIndexLabelIndex = do
   void $ P.single '{'
   index1 <- PCL.decimal
@@ -55,28 +55,28 @@ pIndexLabelIndex = do
   void $ P.single '-'
   index2 <- PCL.decimal
   void $ P.single '}'
-  pure $ LabelIndex index2 . Label label <$> Index index1
+  pure $ D.LabelIndex index2 . D.Label label <$> D.Index index1
 
 -- {ラベル}
-pLabel :: Parser (DictHeader a -> DictHeader a)
+pLabel :: Parser (D.DictHeader a -> D.DictHeader a)
 pLabel = do
   void $ P.single '{'
   label <- T.concat <$> P.some (P.notFollowedBy (P.single '-') >> pText)
   void $ P.single '}'
-  pure $ Label label
+  pure $ D.Label label
 
 -- {ラベル-123}
-pLabelIndex :: Parser (DictHeader a -> DictHeader a)
+pLabelIndex :: Parser (D.DictHeader a -> D.DictHeader a)
 pLabelIndex = do
   void $ P.single '{'
   label <- T.concat <$> P.some (P.notFollowedBy (P.single '-') >> pText)
   void $ P.single '-'
   index <- PCL.decimal
   void $ P.single '}'
-  pure $ LabelIndex index <$> Label label
+  pure $ D.LabelIndex index <$> D.Label label
 
 -- {ラベル-123-456}
-pLabelIndexIndex :: Parser  (DictHeader a -> DictHeader a)
+pLabelIndexIndex :: Parser  (D.DictHeader a -> D.DictHeader a)
 pLabelIndexIndex = do
   void $ P.single '{'
   label <- T.concat <$> P.some (P.notFollowedBy (P.single '-') >> pText)
@@ -85,10 +85,10 @@ pLabelIndexIndex = do
   void $ P.single '-'
   index2 <- PCL.decimal
   void $ P.single '}'
-  pure $ LabelIndexIndex index2 . LabelIndex index1 <$> Label label
+  pure $ D.LabelIndexIndex index2 . D.LabelIndex index1 <$> D.Label label
 
-pWord :: Parser (DictHeader a)
-pWord = Word . T.strip <$> p4
+pWord :: Parser (D.DictHeader a)
+pWord = D.Word . T.strip <$> p4
   where
     p4 :: Parser Text
     p4 = T.concat <$> p3

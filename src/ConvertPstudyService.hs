@@ -4,20 +4,20 @@ module ConvertPstudyService (
 
 import Import
 import Data.List (sortOn)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
 import Conduit
 import qualified Data.Conduit.Binary as CB
+import qualified Data.Text as T
+--import qualified Data.Text.Encoding as TE
 import qualified Data.Text.ICU.Convert as ICU
 import qualified Data.Text.IO as T
-import Text.Show.Unicode (ushow)
-import qualified Data.ByteString.UTF8 as U
 
 import qualified Dict as D
 import qualified DictionaryParser as P
 
-runConvertPstudyService :: (FilePath, FilePath, Natural) -> RIO App ()
-runConvertPstudyService (readPath, writePath, level) = do
+-- TODO use criterion package and runMode function to measure this prog
+
+runConvertPstudyService :: (Text, FilePath, FilePath, Natural) -> RIO App ()
+runConvertPstudyService (appInfo, readPath, writePath, level) = do
 
   env <- ask
   when (env.appOptions.optionsVerbose) $ do
@@ -37,7 +37,7 @@ runConvertPstudyService (readPath, writePath, level) = do
     .| mapC unliftParserResult
     .| sinkList
   when (env.appOptions.optionsVerbose) $
-    liftIO $ printE "processing: all the dictionary data are converted from Shift JIS encoding to UTF 8, and parsed"
+    liftIO $ printE "processing: all the dictionary data encodings are converted from Shift JIS to UTF 8, and parsed"
 
   -- TODO use async
   let svl :: [D.DictEntry] = if level == 0
@@ -51,21 +51,24 @@ runConvertPstudyService (readPath, writePath, level) = do
   when (env.appOptions.optionsVerbose) $
     liftIO $ printE "processing: dictionary data listed in SVL are grouped"
 
-  let write = if writePath == "" then T.putStrLn else T.writeFile writePath
-  liftIO . write $ "psscsvfile,100,"
-  liftIO . write $ "SVL" <> if level /= 0 then tshow level <> "000" else "" <> ",https://eijiro.jp/,tako.shochou@gmail.com,"
-  liftIO . write $ "a1,a2,q1"
-
-  --
-  -- TODO too slow for writing @see https://stackoverflow.com/questions/55120077/how-to-write-big-file-efficiently-in-haskell
-  --
-  runConduitRes $ yieldMany group
-    -- .| mapC (U.fromString . ushow)
-    -- .| mapC ushow
-    .| mapC dictEntryToText
-    .| mapC (<> "\n")
-    .| mapC TE.encodeUtf8
-    .| if writePath == "" then stdoutC else sinkFile writePath
+  -- TODO too slow to write @see https://stackoverflow.com/questions/55120077/how-to-write-big-file-efficiently-in-haskell
+  bracket
+    (if writePath == "" then pure stdout else openFile writePath WriteMode)
+    (\h -> if writePath == "" then pure () else hClose h)
+    $ \h -> do -- inside bracket
+      liftIO . T.hPutStrLn h $ "\"psscsvfile\",100,"
+      liftIO . T.hPutStrLn h $ "\"SVL"
+        <> (if level == 0 then "" else tshow level <> "000")
+        <> "\",\"https://eijiro.jp/\",\""
+        <> appInfo
+        <> "\""
+      liftIO . T.hPutStrLn h $ "\"a1\",\"a2\",\"q1\""
+      forM_ group $ liftIO . T.hPutStrLn h . dictEntryToText
+      -- runConduitRes $ yieldMany group
+      --   .| mapC dictEntryToText
+      --   .| mapC (<> "\n")
+      --   .| mapC TE.encodeUtf8
+      --   .| if writePath == "" then stdoutC else sinkHandle h
 
   when (env.appOptions.optionsVerbose) $ do
     liftIO . printE $ "processing: ConvertPstudyService ends"
@@ -101,7 +104,7 @@ runConvertPstudyService (readPath, writePath, level) = do
     sortBySvl =
       sortOn (\x ->
         case D.svl $ snd x of
-          Just x -> x
+          Just y -> y
           Nothing -> 0
       )
 
@@ -112,21 +115,24 @@ runConvertPstudyService (readPath, writePath, level) = do
         f1 :: D.DictEntry -> (D.DictEntry, [D.DictEntry])
         f1 svl = (svl, flip filter xs $ \x -> (D.word . fst $ svl) == (D.word . fst $ x))
 
-    -- a1(word), a2(svl), q1(label-translated...)
+    -- a1(word), a2(svl), q1([label]-mispron-translated...)
+    -- TODO espace double quotes if needed
+    -- TODO show mispronounciation mark
     dictEntryToText :: (D.DictEntry, [D.DictEntry]) -> Text
     dictEntryToText ((svlHeader, svlBody), dict) =
-      D.word svlHeader <> "," <> showSvl svlBody <> "," <> showTranslated dict
+      "\"" <> D.word svlHeader <> "\",\"SVL " <> showSvl svlBody <> "\",\"" <> showTranslated dict <> "\""
       where
         showSvl :: D.DictAttr a -> Text
         showSvl attr =
           case D.svl attr of
             Just x -> tshow x
             Nothing -> ""
-        -- TODO use alternative to filter entries thier translated are empty
         showTranslated :: [D.DictEntry] -> Text
-        showTranslated entries = T.concat . map (\x -> showLabel x <> showTranslated' x) $ entries
-        showTranslated' :: D.DictEntry -> Text
-        showTranslated' = D.translated . snd
-        showLabel :: D.DictEntry -> Text
-        showLabel =
-          T.cons '[' . flip T.snoc ']' . (\x -> case x of "" -> "-"; otherwise -> x) . D.label . fst
+        showTranslated entries = T.intercalate " " . filter (/= "") . flip map entries $ \x -> do
+          let l :: Text = (T.strip . D.label . fst) x
+          let t :: Text = (T.strip . D.translated . snd) x
+          case (l, t) of
+            ("", "") -> ""
+            ("", _) -> "\x2023" <> t
+            (_, "") -> "\x2023[" <> l <> "]"
+            _ -> "\x2023[" <> l <> "]" <> t

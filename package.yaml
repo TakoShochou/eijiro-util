@@ -3,9 +3,9 @@ synopsis:            Eijiro dictionary data utility
 version:             0.1.0.0
 github:              githubuser/pstudy
 license:             BSD-3-Clause
-author:              Author name here
-maintainer:          example@example.com
-copyright:           2023 Author name here
+author:              tako.shochou@gmail.com
+maintainer:          tako.shochou@gmail.com
+copyright:           2024 <tako.shochou@gmail.com>
 
 extra-source-files:
 - README.md
@@ -23,6 +23,7 @@ description:         Please see the README on Github at <https://github.com/gith
 dependencies:
 - base >= 4.11 && < 10
 - rio >= 0.1.12.0
+- async
 - bytestring
 - conduit
 - conduit-extra
@@ -30,8 +31,8 @@ dependencies:
 - regex-tdfa
 - text
 - text-icu
-- unicode-show
-- utf8-string
+# - unicode-show
+# - utf8-string
 
 ghc-options:
 - -Wall

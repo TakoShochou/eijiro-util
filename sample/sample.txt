@@ -11,6 +11,6 @@
 ■fff {名-1-1} : 【あ】ラベルとラベルインデクスとサブラベルインデクス1
 ■fff {名・動-1-2} : 【い】ラベルとラベルインデクスとサブラベルインデクス2、【う】あああ
 ■ggg : 和訳【レベル】1
-■ggg : 和訳■example sentence1【レベル】2、【発音】abc
-■ggg : 和訳■・example sentence1■・example sentence2【レベル】12、【発音】abc、【発音！】def
+■ggg : 和訳■example sentence1【ラベル】2、【発音】abc
+■ggg : 和訳{わやく}■・example sentence1■・example sentence2【レベル】12、【発音】abc、【発音！】def
 エラー

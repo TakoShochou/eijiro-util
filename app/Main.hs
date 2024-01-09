@@ -3,6 +3,8 @@
 module Main (main) where
 
 import Import
+import Data.Version (showVersion)
+import qualified RIO.Text as T
 import AnalyseService
 import ConvertUtf8Service
 import ConvertPstudyService
@@ -10,6 +12,8 @@ import RIO.Process
 import Options.Applicative.Simple
 import qualified Paths_eijiro_util
 import qualified PackageInfo_eijiro_util
+
+-- TODO use criterion package and runMode function to measure this prog
 
 main :: IO ()
 main = do
@@ -41,7 +45,15 @@ main = do
     convertPstudyCommand = addCommand "pstudy"
       "Convert Eijiro dictionary data to Pstduy data"
       runConvertPstudyService
-      $ (,,) <$> pReadPath <*> pWritePath <*> pConvertLevel
+      $ (,,,) <$> appInfo <*> pReadPath <*> pWritePath <*> pConvertLevel
+    appInfo :: Parser Text
+    appInfo =
+      pure
+        $  T.pack PackageInfo_eijiro_util.name
+        <> " "
+        <> (T.pack . showVersion) PackageInfo_eijiro_util.version
+        <> " \x00A9"
+        <> T.pack PackageInfo_eijiro_util.copyright
     pReadPath = strArgument (metavar "FILE_PATH" <> help "Eijiro data file")
     pWritePath = strOption
       $ short 'f'

@@ -12,6 +12,8 @@ module Dict (
 
 import RIO
 
+-- @see https://www.eijiro.jp/spec.htm
+
 type DictEntry = (DictHeader Text, DictAttr Text)
 
 data DictHeader a where
@@ -49,7 +51,7 @@ label = loop
   where
     loop :: DictHeader a -> Text
     loop = \case
-      Word a -> ""
+      Word _ -> ""
       Index _ a -> loop a
       Label a _ -> a
       LabelIndex _ a -> loop a

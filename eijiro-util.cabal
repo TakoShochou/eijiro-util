@@ -10,9 +10,9 @@ synopsis:       Eijiro dictionary data utility
 description:    Please see the README on Github at <https://github.com/githubuser/pstudy#readme>
 homepage:       https://github.com/githubuser/pstudy#readme
 bug-reports:    https://github.com/githubuser/pstudy/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2023 Author name here
+author:         tako.shochou@gmail.com
+maintainer:     tako.shochou@gmail.com
+copyright:      2024 <tako.shochou@gmail.com>
 license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
@@ -44,7 +44,8 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -XOverloadedRecordDot -XTypeApplications -XNoImplicitPrelude -XNumericUnderscores -XGADTs -XScopedTypeVariables -XStandaloneDeriving -XLambdaCase
   build-depends:
-      base >=4.11 && <10
+      async
+    , base >=4.11 && <10
     , bytestring
     , conduit
     , conduit-extra
@@ -53,8 +54,6 @@ library
     , rio >=0.1.12.0
     , text
     , text-icu
-    , unicode-show
-    , utf8-string
   default-language: Haskell2010
 
 executable eijiro-util
@@ -67,7 +66,8 @@ executable eijiro-util
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -XOverloadedRecordDot -XTypeApplications -XNoImplicitPrelude -XNumericUnderscores -XGADTs -XScopedTypeVariables -XStandaloneDeriving -XLambdaCase -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.11 && <10
+      async
+    , base >=4.11 && <10
     , bytestring
     , conduit
     , conduit-extra
@@ -78,8 +78,6 @@ executable eijiro-util
     , rio >=0.1.12.0
     , text
     , text-icu
-    , unicode-show
-    , utf8-string
   default-language: Haskell2010
 
 test-suite eijiro-util-test
@@ -94,7 +92,8 @@ test-suite eijiro-util-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -XOverloadedRecordDot -XTypeApplications -XNoImplicitPrelude -XNumericUnderscores -XGADTs -XScopedTypeVariables -XStandaloneDeriving -XLambdaCase -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.11 && <10
+      async
+    , base >=4.11 && <10
     , bytestring
     , conduit
     , conduit-extra
@@ -105,6 +104,4 @@ test-suite eijiro-util-test
     , rio >=0.1.12.0
     , text
     , text-icu
-    , unicode-show
-    , utf8-string
   default-language: Haskell2010

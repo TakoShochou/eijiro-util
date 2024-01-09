@@ -1,7 +1,6 @@
 module BodyParser (pBody) where
 
 import RIO
-import RIO.List (headMaybe)
 import RIO.Char (isPrint)
 import RIO.Set (singleton)
 import qualified RIO.Text as T
@@ -12,8 +11,8 @@ import Dict
 
 pBody :: Parser (DictAttr a)
 pBody = do
-  translated <- Translated <$> pTranslated
-  reduce fn translated <$> pAttrs
+  t <- Translated <$> pTranslated
+  reduce fn t <$> pAttrs
   where
     reduce
       :: (DictAttr a -> (DictAttr a -> DictAttr a) -> DictAttr a) -- fold function
@@ -25,13 +24,25 @@ pBody = do
     fn :: DictAttr a -> (DictAttr a -> DictAttr a) -> DictAttr a
     fn accum x = x accum
 
--- TODO take account of example sentences
+-- TODO remove "◆" if needed
 pTranslated :: Parser Text
-pTranslated = do
-  txt <- T.pack <$> P.many (P.notFollowedBy (P.single '【') >> P.try (pAttrChar []))
-  pure $ case headMaybe $ T.split (=='■') txt of
-    Nothing -> ""
-    Just a -> a
+pTranslated = T.concat <$> p
+  where
+    pKana :: Parser Text
+    pKana = do
+      void $ P.single '｛'
+      void . P.many $ P.notFollowedBy (P.single '｝') >> pAttrChar []
+      void $ P.single '｝'
+      pure ""
+    pExample :: Parser Text
+    pExample = do
+      void $ P.chunk "■・"
+      void . P.many $ pAttrChar []
+      pure ""
+    pChar :: Parser Text
+    pChar = T.singleton <$> pAttrChar []
+    p :: Parser [Text]
+    p = P.many $ P.notFollowedBy (P.single '【') >> (P.try pKana <|> P.try pExample <|> pChar)
 
 pAttrs :: Parser [DictAttr a -> DictAttr a]
 pAttrs = p
