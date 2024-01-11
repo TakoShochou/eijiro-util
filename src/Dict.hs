@@ -6,8 +6,8 @@ module Dict (
   label,
   translated,
   svl,
-  -- phonetics,
-  -- mispronounce,
+  pron,
+  mispron,
 ) where
 
 import RIO
@@ -79,3 +79,24 @@ svl = loop
       Svl hit _ -> Just hit
       Pron _ a -> loop a
       Mispron _ a -> loop a
+
+pron :: DictAttr a -> Text
+pron = loop
+  where
+    loop :: DictAttr a -> Text
+    loop = \case
+      Ignore _ a -> loop a
+      Translated _ -> ""
+      Svl _ a -> loop a
+      Pron a _ -> a
+      Mispron _ a -> loop a
+mispron :: DictAttr a -> Text
+mispron = loop
+  where
+    loop :: DictAttr a -> Text
+    loop = \case
+      Ignore _ a -> loop a
+      Translated _ -> ""
+      Svl _ a -> loop a
+      Pron _ a -> loop a
+      Mispron a _ -> a

@@ -118,21 +118,26 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
         f1 :: D.DictEntry -> (D.DictEntry, [D.DictEntry])
         f1 svl = (svl, flip filter xs $ \x -> (D.word . fst $ svl) == (D.word . fst $ x))
 
-    -- a1(word), a2, q1([label]-mispron-translated...)
+    -- a1(mispron word [pron]), a2, q1([label] translated...)
     -- TODO show mispronounciation mark
     dictEntryToText :: (D.DictEntry, [D.DictEntry]) -> Text
     dictEntryToText ((svlHeader, svlBody), dict) =
       (T.replace "," "、" . D.word) svlHeader
+      <> showPron svlBody
       <> ","
       <> "SVL" <> showSvl svlBody
       <> ","
       <> (T.replace "," "、" . showTranslated) dict
       where
+        showPron :: D.DictAttr a -> Text
+        showPron attr =
+          case (D.mispron attr, D.pron attr) of
+            ("", "") -> ""
+            ("", pron) -> " [" <> pron <> "]"
+            (mispron, "") -> " [" <> mispron <> "]【発音注意】"
+            (pron, mispron) -> " [" <> (max pron mispron) <> "]【発音注意】"
         showSvl :: D.DictAttr a -> Text
-        showSvl attr =
-          case D.svl attr of
-            Just x -> tshow x
-            Nothing -> ""
+        showSvl attr = fromMaybe "" $ (tshow <$> D.svl attr)
         showTranslated :: [D.DictEntry] -> Text
         showTranslated entries = T.intercalate " " . filter (/= "") . flip map entries $ \x -> do
           let l :: Text = (T.strip . D.label . fst) x
