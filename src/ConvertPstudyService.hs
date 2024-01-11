@@ -7,17 +7,17 @@ import Data.List (sortOn)
 import Conduit
 import qualified Data.Conduit.Binary as CB
 import qualified Data.Text as T
---import qualified Data.Text.Encoding as TE
-import qualified Data.Text.ICU.Convert as ICU
+import qualified Data.Text.Encoding as T
 import qualified Data.Text.IO as T
+import qualified Data.Text.ICU.Convert as ICU
 
 import qualified Dict as D
 import qualified DictionaryParser as P
 
 -- TODO use criterion package and runMode function to measure this prog
 
-runConvertPstudyService :: (Text, FilePath, FilePath, Natural) -> RIO App ()
-runConvertPstudyService (appInfo, readPath, writePath, level) = do
+runConvertPstudyService :: (Text, FilePath, FilePath, Natural, String, String) -> RIO App ()
+runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destEncoding) = do
 
   env <- ask
   when (env.appOptions.optionsVerbose) $ do
@@ -27,10 +27,12 @@ runConvertPstudyService (appInfo, readPath, writePath, level) = do
     logError "invalid svl number. level should be 1 to 12. @see https://www.alc.co.jp/vocgram/article/svl/"
     exitFailure
 
-  conv <- liftIO $ ICU.open "Shift-JIS" Nothing
+  srcConv <- liftIO $ ICU.open srcEncoding Nothing
+  destConv <- liftIO $ ICU.open destEncoding Nothing
+
   result :: [D.DictEntry] <- runConduitRes $ sourceFile readPath
     .| CB.lines
-    .| mapC (ICU.toUnicode conv)
+    .| mapC (ICU.toUnicode srcConv)
     .| mapC (T.strip)
     .| mapC P.runDictionaryParser
     .| filterMC filterAndReportLeft
@@ -56,25 +58,26 @@ runConvertPstudyService (appInfo, readPath, writePath, level) = do
     (if writePath == "" then pure stdout else openFile writePath WriteMode)
     (\h -> if writePath == "" then pure () else hClose h)
     $ \h -> do -- inside bracket
-      liftIO . T.hPutStrLn h $ "\"psscsvfile\",100,"
-      liftIO . T.hPutStrLn h $ "\"SVL"
+      liftIO . T.hPutStrLn h $ "psscsvfile,100,"
+      liftIO . T.hPutStrLn h $ "SVL"
         <> (if level == 0 then "" else tshow level <> "000")
-        <> "\",\"https://eijiro.jp/\",\""
-        <> appInfo
-        <> "\""
-      liftIO . T.hPutStrLn h $ "\"a1\",\"a2\",\"q1\""
-      forM_ group $ liftIO . T.hPutStrLn h . dictEntryToText
-      -- runConduitRes $ yieldMany group
-      --   .| mapC dictEntryToText
-      --   .| mapC (<> "\n")
-      --   .| mapC TE.encodeUtf8
-      --   .| if writePath == "" then stdoutC else sinkHandle h
+        <> ",https://eijiro.jp/,"
+        <> appInfo <> ","
+      liftIO . T.hPutStrLn h $ ",,"
+      liftIO . T.hPutStrLn h $ "a1,a2,q1"
+      runConduitRes $ yieldMany group
+        .| mapC dictEntryToText
+        .| mapC (<> "\n")
+        .| mapC (if ICU.getName destConv == "UTF-8" then T.encodeUtf8 else ICU.fromUnicode destConv)
+        .| sinkHandle h
 
   when (env.appOptions.optionsVerbose) $ do
     liftIO . printE $ "processing: ConvertPstudyService ends"
     liftIO . printE $ "src path = " <> T.pack readPath
     liftIO . printE $ "dest path = " <> T.pack writePath
     liftIO . printE $ "level = " <> tshow level
+    liftIO . printE $ "src converter = " <> (T.pack . ICU.getName) srcConv
+    liftIO . printE $ "dest converter = " <> (T.pack . ICU.getName) destConv
     liftIO . printE $ tshow env.appOptions
 
   where
@@ -115,12 +118,15 @@ runConvertPstudyService (appInfo, readPath, writePath, level) = do
         f1 :: D.DictEntry -> (D.DictEntry, [D.DictEntry])
         f1 svl = (svl, flip filter xs $ \x -> (D.word . fst $ svl) == (D.word . fst $ x))
 
-    -- a1(word), a2(svl), q1([label]-mispron-translated...)
-    -- TODO espace double quotes if needed
+    -- a1(word), a2, q1([label]-mispron-translated...)
     -- TODO show mispronounciation mark
     dictEntryToText :: (D.DictEntry, [D.DictEntry]) -> Text
     dictEntryToText ((svlHeader, svlBody), dict) =
-      "\"" <> D.word svlHeader <> "\",\"SVL " <> showSvl svlBody <> "\",\"" <> showTranslated dict <> "\""
+      (T.replace "," "、" . D.word) svlHeader
+      <> ","
+      <> "SVL" <> showSvl svlBody
+      <> ","
+      <> (T.replace "," "、" . showTranslated) dict
       where
         showSvl :: D.DictAttr a -> Text
         showSvl attr =
@@ -133,6 +139,6 @@ runConvertPstudyService (appInfo, readPath, writePath, level) = do
           let t :: Text = (T.strip . D.translated . snd) x
           case (l, t) of
             ("", "") -> ""
-            ("", _) -> "\x2023" <> t
-            (_, "") -> "\x2023[" <> l <> "]"
-            _ -> "\x2023[" <> l <> "]" <> t
+            ("", _) -> "" <> t
+            (_, "") -> "[" <> l <> "]"
+            _ -> "[" <> l <> "]" <> t

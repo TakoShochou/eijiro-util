@@ -45,14 +45,14 @@ main = do
     convertPstudyCommand = addCommand "pstudy"
       "Convert Eijiro dictionary data to Pstduy data"
       runConvertPstudyService
-      $ (,,,) <$> appInfo <*> pReadPath <*> pWritePath <*> pConvertLevel
+      $ (,,,,,) <$> appInfo <*> pReadPath <*> pWritePath <*> pConvertLevel <*> pSrcEncoding <*> pDescEncoding
     appInfo :: Parser Text
     appInfo =
       pure
         $  T.pack PackageInfo_eijiro_util.name
         <> " "
         <> (T.pack . showVersion) PackageInfo_eijiro_util.version
-        <> " \x00A9"
+        <> " "
         <> T.pack PackageInfo_eijiro_util.copyright
     pReadPath = strArgument (metavar "FILE_PATH" <> help "Eijiro data file")
     pWritePath = strOption
@@ -61,6 +61,18 @@ main = do
       <> value ""
       <> metavar "FILE_PATH"
       <> help "specify pstudy file path to be saved"
+    pSrcEncoding = strOption
+      $  long "src_encoding"
+      <> value "Shift-JIS"
+      <> metavar "UTF-8|Shift-JIS"
+      <> help "specify encoding of input file"
+      <> showDefault
+    pDescEncoding = strOption
+      $ long "dest_encoding"
+      <> value "Shift-JIS"
+      <> metavar "UTF-8|Shift-JIS"
+      <> help "specify encoding of output file"
+      <> showDefault
     pTarget = strOption
       $  short 't'
       <> long "target"
