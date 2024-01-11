@@ -58,13 +58,13 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     (if writePath == "" then pure stdout else openFile writePath WriteMode)
     (\h -> if writePath == "" then pure () else hClose h)
     $ \h -> do -- inside bracket
-      liftIO . T.hPutStrLn h $ "psscsvfile,100,"
+      liftIO . T.hPutStrLn h $ "psscsvfile,100,,"
       liftIO . T.hPutStrLn h $ "SVL"
         <> (if level == 0 then "" else tshow level <> "000")
         <> ",https://eijiro.jp/,"
         <> appInfo <> ","
-      liftIO . T.hPutStrLn h $ ",,"
-      liftIO . T.hPutStrLn h $ "a1,a2,q1"
+      liftIO . T.hPutStrLn h $ ",,,"
+      liftIO . T.hPutStrLn h $ "a1,a2,h1,q1"
       runConduitRes $ yieldMany group
         .| mapC dictEntryToText
         .| mapC (<> "\n")
@@ -123,6 +123,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     dictEntryToText :: (D.DictEntry, [D.DictEntry]) -> Text
     dictEntryToText ((svlHeader, svlBody), dict) =
       (T.replace "," "、" . D.word) svlHeader
+      <> ","
       <> showPron svlBody
       <> ","
       <> "SVL" <> showSvl svlBody
@@ -133,9 +134,9 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
         showPron attr =
           case (D.mispron attr, D.pron attr) of
             ("", "") -> ""
-            ("", pron) -> " [" <> pron <> "]"
-            (mispron, "") -> " [" <> mispron <> "]【発音注意】"
-            (pron, mispron) -> " [" <> (max pron mispron) <> "]【発音注意】"
+            ("", pron) -> pron
+            (mispron, "") -> mispron <> "【発音注意】"
+            (pron, mispron) -> (max pron mispron) <> "【発音注意】"
         showSvl :: D.DictAttr a -> Text
         showSvl attr = fromMaybe "" $ (tshow <$> D.svl attr)
         showTranslated :: [D.DictEntry] -> Text
