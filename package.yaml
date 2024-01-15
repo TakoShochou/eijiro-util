@@ -1,6 +1,6 @@
 name:                eijiro-util
 synopsis:            Eijiro dictionary data utility
-version:             0.1.0.0
+version:             0.1.0.4
 github:              githubuser/pstudy
 license:             BSD-3-Clause
 author:              tako.shochou@gmail.com
