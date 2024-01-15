@@ -64,7 +64,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
         <> ",https://eijiro.jp/,"
         <> appInfo <> ","
       liftIO . T.hPutStrLn h $ ",,,"
-      liftIO . T.hPutStrLn h $ "a1,a2,h1,q1"
+      liftIO . T.hPutStrLn h $ "a1,h1,h2,q1"
       runConduitRes $ yieldMany group
         .| mapC dictEntryToText
         .| mapC (<> "\n")
