@@ -76,10 +76,9 @@ runAnalyseService (path, target) = do
 
 
 -- "abc" -> ['a', 'b', 'c']
+-- @see https://wiki.haskell.org/Foldr_Foldl_Foldl'
 breakEvery :: Text -> [Char]
 breakEvery = T.foldr fn []
   where
     fn :: Char -> [Char] -> [Char]
     fn ch carry = [ch] <> carry
-    -- TODO foldr, foldl, foldl', decide which to use
-    -- @see https://wiki.haskell.org/Foldr_Foldl_Foldl'

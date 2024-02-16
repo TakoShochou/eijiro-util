@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           eijiro-util
-version:        0.1.0.0
+version:        0.1.0.5
 synopsis:       Eijiro dictionary data utility
 description:    Please see the README on Github at <https://github.com/githubuser/pstudy#readme>
 homepage:       https://github.com/githubuser/pstudy#readme

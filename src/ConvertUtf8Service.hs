@@ -2,7 +2,7 @@ module ConvertUtf8Service (
   runConvertUtf8Service,
 ) where
 
-import Import
+import Import hiding (take)
 import Conduit
 import qualified Data.Conduit.Binary as CB
 import qualified Data.Text.ICU.Convert as ICU

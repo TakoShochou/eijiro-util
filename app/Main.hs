@@ -22,7 +22,7 @@ main = do
       PackageInfo_eijiro_util.name
       PackageInfo_eijiro_util.synopsis
       (Options <$> switch pVerbose)
-      (analyseCommand >> convertUtf8Command >> convertPstudyCommand)
+      (convertPstudyCommand >> convertUtf8Command >> analyseCommand)
   lo <- logOptionsHandle stderr (optionsVerbose options)
   pc <- mkDefaultProcessContext
   withLogFunc lo $ \lf ->
@@ -60,7 +60,7 @@ main = do
       <> long "file"
       <> value ""
       <> metavar "FILE_PATH"
-      <> help "specify pstudy file path to be saved"
+      <> help "specify pstudy file path to be saved. print result to stdout unless otherwise specified."
     pSrcEncoding = strOption
       $  long "src_encoding"
       <> value "Shift-JIS"
@@ -90,9 +90,11 @@ main = do
       <> value 0
       <> metavar "NUMBER"
       <> help "specify begin line to be taken"
+      <> showDefault
     pTakeTo = option auto
       $  short 'n'
       <> long "take"
       <> value 9_999_999
       <> metavar "NUMBER"
-      <> help "specify end line to be taken"
+      <> help "specify the number of lines to be taken"
+      <> showDefault

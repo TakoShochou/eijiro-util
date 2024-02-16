@@ -41,19 +41,18 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
   when (env.appOptions.optionsVerbose) $
     liftIO $ printE "processing: all the dictionary data encodings are converted from Shift JIS to UTF 8, and parsed"
 
-  -- TODO use async
   let svl :: [D.DictEntry] = if level == 0
       then sortBySvl $ filter (filterSvl level) result
       else filter (filterSvl level) result
   when (env.appOptions.optionsVerbose) $
     liftIO $ printE "processing: svl entries are extracted from the parsed data."
 
-  -- TODO use async
   let group :: [(D.DictEntry, [D.DictEntry])] = groupifyDictEntries svl result
   when (env.appOptions.optionsVerbose) $
     liftIO $ printE "processing: dictionary data listed in SVL are grouped"
 
-  -- TODO too slow to write @see https://stackoverflow.com/questions/55120077/how-to-write-big-file-efficiently-in-haskell
+  -- TODO too slow to write
+  -- @see https://stackoverflow.com/questions/55120077/how-to-write-big-file-efficiently-in-haskell
   bracket
     (if writePath == "" then pure stdout else openFile writePath WriteMode)
     (\h -> if writePath == "" then pure () else hClose h)
@@ -119,7 +118,6 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
         f1 svl = (svl, flip filter xs $ \x -> (D.word . fst $ svl) == (D.word . fst $ x))
 
     -- a1(mispron word [pron]), a2, q1([label] translated...)
-    -- TODO show mispronounciation mark
     dictEntryToText :: (D.DictEntry, [D.DictEntry]) -> Text
     dictEntryToText ((svlHeader, svlBody), dict) =
       (T.replace "," "、" . D.word) svlHeader
