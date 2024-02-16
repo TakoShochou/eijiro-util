@@ -1,6 +1,6 @@
 name:                eijiro-util
 synopsis:            Eijiro dictionary data utility
-version:             0.1.0.5
+version:             0.1.0.6
 github:              githubuser/pstudy
 license:             BSD-3-Clause
 author:              tako.shochou@gmail.com
@@ -31,8 +31,6 @@ dependencies:
 - regex-tdfa
 - text
 - text-icu
-# - unicode-show
-# - utf8-string
 
 ghc-options:
 - -Wall
@@ -45,15 +43,16 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 
-- -XOverloadedStrings
-- -XOverloadedRecordDot
-- -XTypeApplications
-- -XNoImplicitPrelude
-- -XNumericUnderscores
-- -XGADTs
-- -XScopedTypeVariables
-- -XStandaloneDeriving
-- -XLambdaCase
+default-extensions:
+- OverloadedStrings
+- OverloadedRecordDot
+- TypeApplications
+- NoImplicitPrelude
+- NumericUnderscores
+- GADTs
+- ScopedTypeVariables
+- StandaloneDeriving
+- LambdaCase
 
 library:
   source-dirs: src

@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           eijiro-util
-version:        0.1.0.5
+version:        0.1.0.6
 synopsis:       Eijiro dictionary data utility
 description:    Please see the README on Github at <https://github.com/githubuser/pstudy#readme>
 homepage:       https://github.com/githubuser/pstudy#readme
@@ -42,7 +42,17 @@ library
       Paths_eijiro_util
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -XOverloadedRecordDot -XTypeApplications -XNoImplicitPrelude -XNumericUnderscores -XGADTs -XScopedTypeVariables -XStandaloneDeriving -XLambdaCase
+  default-extensions:
+      OverloadedStrings
+      OverloadedRecordDot
+      TypeApplications
+      NoImplicitPrelude
+      NumericUnderscores
+      GADTs
+      ScopedTypeVariables
+      StandaloneDeriving
+      LambdaCase
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       async
     , base >=4.11 && <10
@@ -64,7 +74,17 @@ executable eijiro-util
       Paths_eijiro_util
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -XOverloadedRecordDot -XTypeApplications -XNoImplicitPrelude -XNumericUnderscores -XGADTs -XScopedTypeVariables -XStandaloneDeriving -XLambdaCase -threaded -rtsopts -with-rtsopts=-N
+  default-extensions:
+      OverloadedStrings
+      OverloadedRecordDot
+      TypeApplications
+      NoImplicitPrelude
+      NumericUnderscores
+      GADTs
+      ScopedTypeVariables
+      StandaloneDeriving
+      LambdaCase
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       async
     , base >=4.11 && <10
@@ -90,7 +110,17 @@ test-suite eijiro-util-test
       Paths_eijiro_util
   hs-source-dirs:
       test
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -XOverloadedRecordDot -XTypeApplications -XNoImplicitPrelude -XNumericUnderscores -XGADTs -XScopedTypeVariables -XStandaloneDeriving -XLambdaCase -threaded -rtsopts -with-rtsopts=-N
+  default-extensions:
+      OverloadedStrings
+      OverloadedRecordDot
+      TypeApplications
+      NoImplicitPrelude
+      NumericUnderscores
+      GADTs
+      ScopedTypeVariables
+      StandaloneDeriving
+      LambdaCase
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       async
     , base >=4.11 && <10

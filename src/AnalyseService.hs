@@ -22,8 +22,8 @@ import Text.Regex.TDFA (getAllTextMatches, (=~))
 runAnalyseService :: (FilePath, Text) -> RIO App ()
 runAnalyseService (path, target) = do
 
-  when (target /= "header" && target /= "label" && target /= "attr") $ do -- TODO make things type safe
-    logError $ "invalid argument is given to target. expect: header or body. given: " <> display target
+  when (target /= "header" && target /= "label" && target /= "attr") $ do -- TODO make things type safe if needed
+    logError $ "invalid argument is given to target. expect: header, label or attr. given: " <> display target
     exitFailure
 
   conv <- liftIO $ ICU.open "Shift-JIS" Nothing
@@ -73,7 +73,6 @@ runAnalyseService (path, target) = do
     goBody input = do
       let body :: Text = T.drop 3 . snd . T.breakOn " : " $ input
       getAllTextMatches (body =~ ("(【[^】]+】)+" :: Text)) :: [Text]
-
 
 -- "abc" -> ['a', 'b', 'c']
 -- @see https://wiki.haskell.org/Foldr_Foldl_Foldl'

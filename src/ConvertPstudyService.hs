@@ -14,7 +14,7 @@ import qualified Data.Text.ICU.Convert as ICU
 import qualified Dict as D
 import qualified DictionaryParser as P
 
--- TODO use criterion package and runMode function to measure this prog
+-- TODO use criterion package and runMode function to measure this service
 
 runConvertPstudyService :: (Text, FilePath, FilePath, Natural, String, String) -> RIO App ()
 runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destEncoding) = do
@@ -33,23 +33,23 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
   result :: [D.DictEntry] <- runConduitRes $ sourceFile readPath
     .| CB.lines
     .| mapC (ICU.toUnicode srcConv)
-    .| mapC (T.strip)
+    .| mapC T.strip
     .| mapC P.runDictionaryParser
     .| filterMC filterAndReportLeft
     .| mapC unliftParserResult
     .| sinkList
   when (env.appOptions.optionsVerbose) $
-    liftIO $ printE "processing: all the dictionary data encodings are converted from Shift JIS to UTF 8, and parsed"
+    liftIO $ printE "processing: all the dictionary data encodings have been converted from Shift JIS to UTF 8, and parsed"
 
   let svl :: [D.DictEntry] = if level == 0
       then sortBySvl $ filter (filterSvl level) result
       else filter (filterSvl level) result
   when (env.appOptions.optionsVerbose) $
-    liftIO $ printE "processing: svl entries are extracted from the parsed data."
+    liftIO $ printE "processing: svl entries have been extracted from the parsed data."
 
   let group :: [(D.DictEntry, [D.DictEntry])] = groupifyDictEntries svl result
   when (env.appOptions.optionsVerbose) $
-    liftIO $ printE "processing: dictionary data listed in SVL are grouped"
+    liftIO $ printE "processing: dictionary data listed in SVL have been grouped"
 
   -- TODO too slow to write
   -- @see https://stackoverflow.com/questions/55120077/how-to-write-big-file-efficiently-in-haskell
@@ -105,9 +105,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     sortBySvl :: [D.DictEntry] -> [D.DictEntry]
     sortBySvl =
       sortOn (\x ->
-        case D.svl $ snd x of
-          Just y -> y
-          Nothing -> 0
+        fromMaybe 0 (D.svl $ snd x)
       )
 
     groupifyDictEntries :: [D.DictEntry] -> [D.DictEntry] -> [(D.DictEntry, [D.DictEntry])]
@@ -134,9 +132,9 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
             ("", "") -> ""
             ("", pron) -> pron
             (mispron, "") -> mispron <> "【発音注意】"
-            (pron, mispron) -> (max pron mispron) <> "【発音注意】"
+            (pron, mispron) -> max pron mispron <> "【発音注意】"
         showSvl :: D.DictAttr a -> Text
-        showSvl attr = fromMaybe "" $ (tshow <$> D.svl attr)
+        showSvl attr = maybe "" tshow (D.svl attr)
         showTranslated :: [D.DictEntry] -> Text
         showTranslated entries = T.intercalate " " . filter (/= "") . flip map entries $ \x -> do
           let l :: Text = (T.strip . D.label . fst) x
