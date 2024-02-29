@@ -1,4 +1,4 @@
-module Dict (
+module Model.Dict (
   DictEntry,
   DictHeader (..),
   DictAttr (..),

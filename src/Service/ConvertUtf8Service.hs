@@ -1,4 +1,4 @@
-module ConvertUtf8Service (
+module Service.ConvertUtf8Service (
   runConvertUtf8Service,
 ) where
 

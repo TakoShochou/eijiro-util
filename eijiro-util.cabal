@@ -26,15 +26,15 @@ source-repository head
 
 library
   exposed-modules:
-      AnalyseService
-      BodyParser
-      ConvertPstudyService
-      ConvertUtf8Service
-      Dict
-      DictionaryParser
-      HeaderParser
       Import
-      Parser
+      Model.Dict
+      Model.Parser
+      Parser.BodyParser
+      Parser.DictionaryParser
+      Parser.HeaderParser
+      Service.AnalyseService
+      Service.ConvertPstudyService
+      Service.ConvertUtf8Service
       Types
   other-modules:
       Paths_eijiro_util

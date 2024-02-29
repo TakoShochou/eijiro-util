@@ -1,4 +1,4 @@
-module DictionaryParser (
+module Parser.DictionaryParser (
   ParserResult,
   runDictionaryParser,
   tshowParseErrorBundle,
@@ -7,10 +7,10 @@ module DictionaryParser (
 import RIO
 import qualified RIO.Text as T
 import qualified Text.Megaparsec as P
-import Parser (Parser)
-import HeaderParser (pHeader)
-import BodyParser (pBody)
-import Dict (DictEntry, DictHeader(..), DictAttr(..))
+import Parser.HeaderParser (pHeader)
+import Parser.BodyParser (pBody)
+import Model.Parser (Parser)
+import Model.Dict (DictEntry, DictHeader(..), DictAttr(..))
 
 type ParserResult = Either
   (P.ParseErrorBundle Text Void)

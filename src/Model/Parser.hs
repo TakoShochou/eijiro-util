@@ -1,4 +1,4 @@
-module Parser (Parser) where
+module Model.Parser (Parser) where
 
 import RIO
 import qualified Text.Megaparsec as P

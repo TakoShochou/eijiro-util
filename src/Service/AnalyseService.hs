@@ -1,4 +1,4 @@
-module AnalyseService (
+module Service.AnalyseService (
   runAnalyseService,
   breakEvery,
 ) where

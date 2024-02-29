@@ -1,4 +1,4 @@
-module ConvertPstudyService (
+module Service.ConvertPstudyService (
   runConvertPstudyService,
 ) where
 
@@ -11,8 +11,8 @@ import qualified Data.Text.Encoding as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.ICU.Convert as ICU
 
-import qualified Dict as D
-import qualified DictionaryParser as P
+import qualified Model.Dict as D
+import qualified Parser.DictionaryParser as P
 
 -- TODO use criterion package and runMode function to measure this service
 

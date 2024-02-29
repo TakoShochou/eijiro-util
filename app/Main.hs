@@ -5,9 +5,9 @@ module Main (main) where
 import Import
 import Data.Version (showVersion)
 import qualified RIO.Text as T
-import AnalyseService
-import ConvertUtf8Service
-import ConvertPstudyService
+import Service.AnalyseService
+import Service.ConvertUtf8Service
+import Service.ConvertPstudyService
 import RIO.Process
 import Options.Applicative.Simple
 import qualified Paths_eijiro_util
