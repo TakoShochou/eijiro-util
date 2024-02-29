@@ -1,0 +1,35 @@
+@startsalt
+{
+{+
+title Stat Screen
+
+  {/ <&fire> Workout | <b><&bar-chart> Stat</b> }
+
+  == activities
+  ^2024-01^
+  {SI
+    1 | 2 | 3 | 4 | 5 | 6 | 7
+    <color:#666666>■|<color:#333333>■|<color:#333333>■|<color:#999999>■|<color:#333333>■|<color:#FFFFFF>■|<color:#333333>■
+    <color:#000000>■|<color:#333333>■|<color:#666666>■|<color:#333333>■|<color:#FFFFFF>■|<color:#999999>■|<color:#FFFFFF>■
+    <color:#333333>■|<color:#FFFFFF>■|<color:#333333>■|<color:#999999>■|<color:#CCCCCC>■|<color:#FFFFFF>■|<color:#666666>■
+    <color:#999999>■|<color:#333333>■|<color:#666666>■|<color:#999999>■|<color:#333333>■|<color:#333333>■|<color:#999999>■
+  }
+
+  == word list
+  ^SVL 1000^^SVL 2000^^SVL 3000^
+  .
+  .
+  {SI
+    {#
+    word | learning level | number of trials | last trial | last result
+    a | A | 5 | 2024-01-23 | OK
+    able | F | 1 | 2024-01-12 | NG
+    about | C | 3 | 2024-01-15 | OK
+    above | F | 2 | 2024-01-15 | NG
+    across | C | 3 | 2024-01-15 | OK
+
+    }
+  }
+}
+}
+@endsalt

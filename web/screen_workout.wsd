@@ -1,0 +1,25 @@
+@startsalt
+{
+  title Workout Screen
+
+
+  {+
+  SVL 1000
+  .
+  {S
+    above
+    .
+    эbΛ'v
+    "                      "
+  }*
+  .
+  [w]|[動]点在する
+  [a]|[動]増える
+  [s]|[名]名刺
+  [d]|[副]そこに
+  .
+  .
+  [Quit] | [Next]
+  }
+}
+@endsalt

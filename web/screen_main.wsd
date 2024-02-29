@@ -1,0 +1,17 @@
+@startsalt
+{
+{+
+  title Main Screen
+  {/ <b><&fire> Workout</b> | <&bar-chart> Stat }
+  <&person> select user   | ^John Doe^^Jane Doe^
+  .
+  <&book> select workout | ^SVL 1000^^SVL 2000^
+  .
+  <&resize-height> select amount  | ^10^^20^
+  .
+  swap question and answer | (X)
+  .
+  .| [<&media-play> start]
+}
+}
+@endsalt

@@ -1,0 +1,49 @@
+P-Study Systemの代替サービスをウェブアプリケーションとして提供します。
+
+@see https://plantuml.com/use-case-diagram
+
+@startuml
+left to right direction
+
+actor User as U
+
+package Frontend {
+  usecase "ユーザを切り替える" as F0
+  usecase "進捗を確認する" as F1
+  usecase "問題集を選択する" as F2
+  usecase "出題スタイルを指定する" as F3
+  usecase "出題数を指定する" as F4
+  usecase "新規学習する" as F5
+  usecase "復習する" as F6
+  usecase "重点学習する" as F7
+  usecase "学習を中断する" as F8
+  usecase "学習を完了する" as F9
+}
+
+package Backend {
+  usecase "進捗を確認する" as B1
+  usecase "問題セットを取得する" as B2
+  usecase "結果を取得する" as B3
+}
+
+U --> F0
+
+U --> F1
+U --> F2
+U --> F3 : 問題と正答を逆転表示するかどうか
+U --> F4
+U --> F5
+U --> F6
+U --> F7
+U --> F8
+U --> F9
+
+F1 <--> B1 : ユーザを指定して、アクティビティカレンダー、問題集ごとのワードリストと進捗状況を取得する
+F5 <--> B2 : ユーザ、問題集、スタイル、出題数を指定
+F6 <--> B2 : ユーザ、問題集、スタイル、出題数を指定
+F7 <--> B2 : ユーザ、問題集、スタイル、出題数を指定
+
+F8 <--> B3
+F9 <--> B3
+
+@enduml
