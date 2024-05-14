@@ -45,6 +45,9 @@
 SVL 1のみを対象に標準出力にUTF-8で結果を出力する場合で、さらに、実行過程および実行結果の情報を表示する場合:
 `./eijiro-util -v pstudy 【英辞郎テキストデータのパス】 --level 1 --dest_encoding UTF-8`
 
+SVL 1のみを対象にJSON形式で標準出力にUTF-8で結果を出力する場合:
+`./eijiro-util pstudy 【英辞郎テキストデータのパス】 --format json --level 1 --dest_encoding UTF-8`
+
 ### `utf8`: 英辞郎データをUTF-8に変換するアプリケーションコマンド
 
 utf8コマンドのヘルプを参照してください。

@@ -45,7 +45,7 @@ main = do
     convertPstudyCommand = addCommand "pstudy"
       "Convert Eijiro dictionary data to Pstduy data"
       runConvertPstudyService
-      $ (,,,,,) <$> appInfo <*> pReadPath <*> pWritePath <*> pConvertLevel <*> pSrcEncoding <*> pDescEncoding
+      $ (,,,,,,) <$> appInfo <*> pReadPath <*> pWritePath <*> pConvertLevel <*> pSrcEncoding <*> pDescEncoding <*> pOutputFormat
     appInfo :: Parser Text
     appInfo =
       pure
@@ -54,6 +54,12 @@ main = do
         <> (T.pack . showVersion) PackageInfo_eijiro_util.version
         <> " "
         <> T.pack PackageInfo_eijiro_util.copyright
+    pTarget = strOption
+      $  short 't'
+      <> long "target"
+      <> value "header"
+      <> metavar "header|label|attr"
+      <> help "specify part of the line to be analysed: header word, header speech labels, or body attributes"
     pReadPath = strArgument (metavar "FILE_PATH" <> help "Eijiro data file")
     pWritePath = strOption
       $ short 'f'
@@ -73,12 +79,6 @@ main = do
       <> metavar "UTF-8|Shift-JIS"
       <> help "specify encoding of output file"
       <> showDefault
-    pTarget = strOption
-      $  short 't'
-      <> long "target"
-      <> value "header"
-      <> metavar "header|label|attr"
-      <> help "specify part of the line to be analysed: header word, header speech labels, or body attributes"
     pConvertLevel = option auto
       $  short 'l'
       <> long "level"
@@ -97,4 +97,10 @@ main = do
       <> value 9_999_999
       <> metavar "NUMBER"
       <> help "specify the number of lines to be taken"
+      <> showDefault
+    pOutputFormat = strOption
+      $ long "format"
+      <> value "csv"
+      <> metavar "csv|json"
+      <> help "specify output format"
       <> showDefault

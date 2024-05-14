@@ -54,7 +54,9 @@ library
       LambdaCase
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      async
+      aeson
+    , aeson-pretty
+    , async
     , base >=4.11 && <10
     , bytestring
     , conduit
@@ -86,7 +88,9 @@ executable eijiro-util
       LambdaCase
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      async
+      aeson
+    , aeson-pretty
+    , async
     , base >=4.11 && <10
     , bytestring
     , conduit
@@ -122,7 +126,9 @@ test-suite eijiro-util-test
       LambdaCase
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      async
+      aeson
+    , aeson-pretty
+    , async
     , base >=4.11 && <10
     , bytestring
     , conduit

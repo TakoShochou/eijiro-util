@@ -5,19 +5,23 @@ module Service.ConvertPstudyService (
 import Import
 import Data.List (sortOn)
 import Conduit
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Conduit.Binary as CB
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.ICU.Convert as ICU
+import qualified Data.Aeson as JSON
+import qualified Data.Aeson.Encode.Pretty as JSON
 
 import qualified Model.Dict as D
 import qualified Parser.DictionaryParser as P
 
 -- TODO use criterion package and runMode function to measure this service
+-- TODO make format option type safe
 
-runConvertPstudyService :: (Text, FilePath, FilePath, Natural, String, String) -> RIO App ()
-runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destEncoding) = do
+runConvertPstudyService :: (Text, FilePath, FilePath, Natural, String, String, String) -> RIO App ()
+runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destEncoding, outputFormat) = do
 
   env <- ask
   when (env.appOptions.optionsVerbose) $ do
@@ -29,6 +33,10 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
 
   srcConv <- liftIO $ ICU.open srcEncoding Nothing
   destConv <- liftIO $ ICU.open destEncoding Nothing
+
+  unless (outputFormat `elem` ["csv", "json"]) $ do
+    logError "invalid output format. you can specify csv or json."
+    exitFailure
 
   result :: [D.DictEntry] <- runConduitRes $ sourceFile readPath
     .| CB.lines
@@ -57,18 +65,28 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     (if writePath == "" then pure stdout else openFile writePath WriteMode)
     (\h -> if writePath == "" then pure () else hClose h)
     $ \h -> do -- inside bracket
-      liftIO . T.hPutStrLn h $ "psscsvfile,100,,"
-      liftIO . T.hPutStrLn h $ "SVL"
-        <> (if level == 0 then "" else tshow level <> "000")
-        <> ",https://eijiro.jp/,"
-        <> appInfo <> ","
-      liftIO . T.hPutStrLn h $ ",,,"
-      liftIO . T.hPutStrLn h $ "a1,h1,h2,q1"
-      runConduitRes $ yieldMany group
-        .| mapC dictEntryToText
-        .| mapC (<> "\n")
-        .| mapC (if ICU.getName destConv == "UTF-8" then T.encodeUtf8 else ICU.fromUnicode destConv)
-        .| sinkHandle h
+      if outputFormat == "json"
+        then do
+          liftIO . T.hPutStrLn h $ "{\n\"questions\": ["
+          runConduitRes $ yieldMany group
+            .| mapC dictEntryToJson
+            .| intersperseC ",\n"
+            .| mapC (if ICU.getName destConv == "UTF-8" then T.encodeUtf8 else ICU.fromUnicode destConv)
+            .| sinkHandle h
+          liftIO . T.hPutStrLn h $ "]}"
+        else do
+          liftIO . T.hPutStrLn h $ "psscsvfile,100,,"
+          liftIO . T.hPutStrLn h $ "SVL"
+            <> (if level == 0 then "" else tshow level <> "000")
+            <> ",https://eijiro.jp/,"
+            <> appInfo <> ","
+          liftIO . T.hPutStrLn h $ ",,,"
+          liftIO . T.hPutStrLn h $ "a1,h1,h2,q1"
+          runConduitRes $ yieldMany group
+            .| mapC dictEntryToCsv
+            .| mapC (<> "\n")
+            .| mapC (if ICU.getName destConv == "UTF-8" then T.encodeUtf8 else ICU.fromUnicode destConv)
+            .| sinkHandle h
 
   when (env.appOptions.optionsVerbose) $ do
     liftIO . printE $ "processing: ConvertPstudyService ends"
@@ -77,6 +95,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     liftIO . printE $ "level = " <> tshow level
     liftIO . printE $ "src converter = " <> (T.pack . ICU.getName) srcConv
     liftIO . printE $ "dest converter = " <> (T.pack . ICU.getName) destConv
+    liftIO . printE $ "output format = " <> tshow outputFormat
     liftIO . printE $ tshow env.appOptions
 
   where
@@ -115,14 +134,24 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
         f1 :: D.DictEntry -> (D.DictEntry, [D.DictEntry])
         f1 svl = (svl, flip filter xs $ \x -> (D.word . fst $ svl) == (D.word . fst $ x))
 
+    --
+    -- output
+    --
+
+    showSvlText ::  D.DictAttr a -> Text
+    showSvlText attr = maybe "" tshow (D.svl attr)
+
+    showSvlNatural :: D.DictAttr a -> Natural
+    showSvlNatural attr = maybe 0 id (D.svl attr)
+
     -- a1(mispron word [pron]), a2, q1([label] translated...)
-    dictEntryToText :: (D.DictEntry, [D.DictEntry]) -> Text
-    dictEntryToText ((svlHeader, svlBody), dict) =
+    dictEntryToCsv :: (D.DictEntry, [D.DictEntry]) -> Text
+    dictEntryToCsv ((svlHeader, svlBody), dict) =
       (T.replace "," "、" . D.word) svlHeader
       <> ","
       <> showPron svlBody
       <> ","
-      <> "SVL" <> showSvl svlBody
+      <> "SVL" <> showSvlText svlBody
       <> ","
       <> (T.replace "," "、" . showTranslated) dict
       where
@@ -133,8 +162,6 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
             ("", pron) -> pron
             (mispron, "") -> mispron <> "【発音注意】"
             (pron, mispron) -> max pron mispron <> "【発音注意】"
-        showSvl :: D.DictAttr a -> Text
-        showSvl attr = maybe "" tshow (D.svl attr)
         showTranslated :: [D.DictEntry] -> Text
         showTranslated entries = T.intercalate " " . filter (/= "") . flip map entries $ \x -> do
           let l :: Text = (T.strip . D.label . fst) x
@@ -144,3 +171,50 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
             ("", _) -> "" <> t
             (_, "") -> "[" <> l <> "]"
             _ -> "[" <> l <> "]" <> t
+
+    -- {
+    --   "questions": [
+    --     {
+    --       "header": "aaaa",
+    --       "level": 1,
+    --       "body": [
+    --         {
+    --           "translated": "あああ",
+    --           "pron": "a:",
+    --           "mispron": true
+    --         }
+    --       ] // body
+    --     }
+    --   ] // questions
+    -- }
+    --
+    --
+    --
+    dictEntryToJson :: (D.DictEntry, [D.DictEntry]) -> Text
+    dictEntryToJson ((svlHeader, svlBody), dict) =
+        (T.decodeUtf8 . BSL.toStrict . JSON.encodePretty . JSON.object) entry
+      where
+        entry = [ "header" JSON..= (((T.replace "," "、" . D.word) svlHeader) :: Text)
+          , "level" JSON..= (showSvlNatural svlBody :: Natural)
+          , "body" JSON..= body
+          ]
+        body = filter (/= " ") . flip map dict $ \x -> do
+          let l :: Text = (T.strip . D.label . fst) x
+          let t :: Text = (T.strip . D.translated . snd) x
+          let (p, m) :: (Text, Bool) =
+                case (D.pron svlBody, D.mispron svlBody) of
+                  ("", "") -> ("", False)
+                  (pron, "") -> (pron, False)
+                  ("", mispron) -> (mispron, True)
+                  (pron, mispron) -> (max pron mispron, True)
+          if t == ""
+            then JSON.Null
+              -- ^ TODO remove an empty entry from JSON output
+              -- @see https://hackage.haskell.org/package/aeson-2.2.1.0/docs/Data-Aeson.html#v:omitNothingFields
+            else
+              JSON.object
+                [ "translated" JSON..= t
+                , "label" JSON..= l
+                , "pron" JSON..= p
+                , "mispron" JSON..= m
+                ]
