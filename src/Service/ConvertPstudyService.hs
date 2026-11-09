@@ -26,7 +26,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
 
   env <- ask
   when env.appOptions.optionsVerbose $ do
-    liftIO . printE $ "processing: ConvertPstudyService begings"
+    liftIO . printE $ "processing: ConvertPstudyService begins"
 
   when (level > 12) $ do
     logError "invalid svl number. level should be 1 to 12. @see https://www.alc.co.jp/vocgram/article/svl/"
@@ -54,11 +54,11 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
       then sortBySvl $ filter (filterSvl level) wholeFlattenDictEntries
       else filter (filterSvl level) wholeFlattenDictEntries
   when env.appOptions.optionsVerbose $
-    liftIO $ printE "processing: svl entries have been extracted from the parsed data."
+    liftIO $ printE "processing: SVL entries have been extracted from the parsed data (evaluation may be deferred due to lazy evaluation)."
 
   let group :: [(D.DictEntry, [D.DictEntry])] = groupifyDictEntries svl wholeFlattenDictEntries
   when env.appOptions.optionsVerbose $
-    liftIO $ printE "processing: dictionary data listed in SVL have been grouped"
+    liftIO $ printE "processing: dictionary data listed in SVL have been grouped (evaluation may be deferred due to lazy evaluation)."
 
   bracket
     (if writePath == "" then pure stdout else openFile writePath WriteMode)
