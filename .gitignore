@@ -2,4 +2,4 @@
 *.swp
 tarballs/
 .stack-work/
-EIJI-136.TXT
+tmp/

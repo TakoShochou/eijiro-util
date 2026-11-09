@@ -1,11 +1,11 @@
 name:                eijiro-util
 synopsis:            Eijiro dictionary data utility
-version:             0.1.0.6
-github:              githubuser/pstudy
+version:             0.1.0.7
+github:              TakoShochou/pstudy
 license:             BSD-3-Clause
 author:              tako.shochou@gmail.com
 maintainer:          tako.shochou@gmail.com
-copyright:           2024 <tako.shochou@gmail.com>
+copyright:           2024-2026 <tako.shochou@gmail.com>
 
 extra-source-files:
 - README.md

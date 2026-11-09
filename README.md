@@ -68,7 +68,7 @@ utf8コマンドのヘルプを参照してください。
 - Ubuntu 22.04.1 LTS
 - Stack 2.9.3
 
-## Pre Build
+## Pre Building
 
 ビルド前に次の依存を解決してください。
 - ユニコードライブラリ
@@ -78,18 +78,31 @@ utf8コマンドのヘルプを参照してください。
 sudo apt-get install libicu-dev zlib1g-dev
 ```
 
-## Build
+## Building
 
 - `stack build`
 
-## Install
+## Installing
 
 ` stack install`
 
-## Run
+## Running
 
 * `stack run -- [コマンド] [コマンドオプション]`
 
-## Run tests
+## Running tests
 
 `stack test`
+
+## Measureing performance
+
+GHC RTSの-sオプションで計測結果を標準エラーに出力します。
+@see package.yaml->executables.eijiro-util.ghc-options
+
+```sh
+stack exec eijiro-util -- pstudy INPUT_FILE \
+  --file PSTUDY_RESULT_FILE \
+  --level 0 \
+  +RTS -s -RTS \
+  2> ANALYSIS_RESULT_FILE
+```
