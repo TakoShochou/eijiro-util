@@ -3,7 +3,8 @@ module Service.ConvertPstudyService (
 ) where
 
 import Import
-import Data.List (sortOn)
+import Data.List ( sortOn )
+import qualified Data.Map as Map
 import Conduit
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Conduit.Binary as CB
@@ -18,13 +19,13 @@ import qualified Model.Dict as D
 import qualified Parser.DictionaryParser as P
 
 -- TODO use criterion package and runMode function to measure this service
--- TODO make format option type safe
+-- TODO make format option type safe if needed
 
 runConvertPstudyService :: (Text, FilePath, FilePath, Natural, String, String, String) -> RIO App ()
 runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destEncoding, outputFormat) = do
 
   env <- ask
-  when (env.appOptions.optionsVerbose) $ do
+  when env.appOptions.optionsVerbose $ do
     liftIO . printE $ "processing: ConvertPstudyService begings"
 
   when (level > 12) $ do
@@ -38,7 +39,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     logError "invalid output format. you can specify csv or json."
     exitFailure
 
-  result :: [D.DictEntry] <- runConduitRes $ sourceFile readPath
+  wholeFlattenDictEntries :: [D.DictEntry] <- runConduitRes $ sourceFile readPath
     .| CB.lines
     .| mapC (ICU.toUnicode srcConv)
     .| mapC T.strip
@@ -46,21 +47,19 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     .| filterMC filterAndReportLeft
     .| mapC unliftParserResult
     .| sinkList
-  when (env.appOptions.optionsVerbose) $
+  when env.appOptions.optionsVerbose $
     liftIO $ printE "processing: all the dictionary data encodings have been converted from Shift JIS to UTF 8, and parsed"
 
   let svl :: [D.DictEntry] = if level == 0
-      then sortBySvl $ filter (filterSvl level) result
-      else filter (filterSvl level) result
-  when (env.appOptions.optionsVerbose) $
+      then sortBySvl $ filter (filterSvl level) wholeFlattenDictEntries
+      else filter (filterSvl level) wholeFlattenDictEntries
+  when env.appOptions.optionsVerbose $
     liftIO $ printE "processing: svl entries have been extracted from the parsed data."
 
-  let group :: [(D.DictEntry, [D.DictEntry])] = groupifyDictEntries svl result
-  when (env.appOptions.optionsVerbose) $
+  let group :: [(D.DictEntry, [D.DictEntry])] = groupifyDictEntries svl wholeFlattenDictEntries
+  when env.appOptions.optionsVerbose $
     liftIO $ printE "processing: dictionary data listed in SVL have been grouped"
 
-  -- TODO too slow to write
-  -- @see https://stackoverflow.com/questions/55120077/how-to-write-big-file-efficiently-in-haskell
   bracket
     (if writePath == "" then pure stdout else openFile writePath WriteMode)
     (\h -> if writePath == "" then pure () else hClose h)
@@ -88,7 +87,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
             .| mapC (if ICU.getName destConv == "UTF-8" then T.encodeUtf8 else ICU.fromUnicode destConv)
             .| sinkHandle h
 
-  when (env.appOptions.optionsVerbose) $ do
+  when env.appOptions.optionsVerbose $ do
     liftIO . printE $ "processing: ConvertPstudyService ends"
     liftIO . printE $ "src path = " <> T.pack readPath
     liftIO . printE $ "dest path = " <> T.pack writePath
@@ -127,12 +126,22 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
         fromMaybe 0 (D.svl $ snd x)
       )
 
+    -- takes `svls`, a list of parsed SVL entries, and `xs`, a flat list of all parsed dic dictionary
+    -- entries.
+    -- returns a list of tuples, each containing as SVL entry as the key and a list of all dictionary
+    -- entries with the same headword as the value.
     groupifyDictEntries :: [D.DictEntry] -> [D.DictEntry] -> [(D.DictEntry, [D.DictEntry])]
     groupifyDictEntries svls xs =
       map f1 svls
       where
         f1 :: D.DictEntry -> (D.DictEntry, [D.DictEntry])
-        f1 svl = (svl, flip filter xs $ \x -> (D.word . fst $ svl) == (D.word . fst $ x))
+        f1 svl = (svl, maybe [] reverse $ Map.lookup (D.word (fst svl)) dict)
+        -- f1 svl = (svl, flip filter xs $
+        --   \x -> (D.word . fst $ svl) == (D.word . fst $ x))
+
+        -- xsから見出し語をキーとした辞書を生成し、後の処理でのルックアップ速度向上を図ります。
+        dict :: Map Text [D.DictEntry]
+        dict = Map.fromListWith (<>) [ (D.word (fst x), [x]) | x <- xs]
 
     --
     -- output
@@ -194,7 +203,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     dictEntryToJson ((svlHeader, svlBody), dict) =
         (T.decodeUtf8 . BSL.toStrict . JSON.encodePretty . JSON.object) entry
       where
-        entry = [ "header" JSON..= (((T.replace "," "、" . D.word) svlHeader) :: Text)
+        entry = [ "header" JSON..= ((T.replace "," "、" . D.word) svlHeader :: Text)
           , "level" JSON..= (showSvlNatural svlBody :: Natural)
           , "body" JSON..= body
           ]

@@ -100,7 +100,7 @@ GHC RTSの-sオプションで計測結果を標準エラーに出力します�
 @see package.yaml->executables.eijiro-util.ghc-options
 
 ```sh
-stack exec eijiro-util -- pstudy INPUT_FILE \
+stack exec eijiro-util -- --verbose pstudy INPUT_FILE \
   --file PSTUDY_RESULT_FILE \
   --level 0 \
   +RTS -s -RTS \

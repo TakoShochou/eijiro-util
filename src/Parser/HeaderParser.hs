@@ -87,6 +87,11 @@ pLabelIndexIndex = do
   void $ P.single '}'
   pure $ D.LabelIndexIndex index2 . D.LabelIndex index1 <$> D.Label label
 
+{-
+手許のデータでは1か所だけ見出し語に`;`が含まれている行があるが、現時点ではSVLに関係しないのでpWordのこの構造
+は取り込まない。
+■Stephen  {人名-2} ; Steven  {人名}
+-}
 pWord :: Parser (D.DictHeader a)
 pWord = D.Word . T.strip <$> p4
   where
