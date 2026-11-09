@@ -65,8 +65,8 @@ utf8コマンドのヘルプを参照してください。
 
 ## 開発情報
 
-- Ubuntu 22.04.1 LTS
-- Stack 2.9.3
+- Ubuntu 26.04.1 LTS
+- Stack 3.11.1
 
 ## Pre Building
 
