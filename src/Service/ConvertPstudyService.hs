@@ -136,9 +136,6 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
       where
         f1 :: D.DictEntry -> (D.DictEntry, [D.DictEntry])
         f1 svl = (svl, maybe [] reverse $ Map.lookup (D.word (fst svl)) dict)
-        -- f1 svl = (svl, flip filter xs $
-        --   \x -> (D.word . fst $ svl) == (D.word . fst $ x))
-
         -- xsから見出し語をキーとした辞書を生成し、後の処理でのルックアップ速度向上を図ります。
         dict :: Map Text [D.DictEntry]
         dict = Map.fromListWith (<>) [ (D.word (fst x), [x]) | x <- xs]
