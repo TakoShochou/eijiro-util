@@ -57,14 +57,14 @@ library
       aeson
     , aeson-pretty
     , async
-    , base >=4.11 && <10
+    , base >=4.11 && <5
     , bytestring
     , conduit
     , conduit-extra
     , containers
     , megaparsec
     , regex-tdfa
-    , rio >=0.1.12.0
+    , rio >=0.1.12.0 && <0.2
     , text
     , text-icu
   default-language: Haskell2010
@@ -92,7 +92,7 @@ executable eijiro-util
       aeson
     , aeson-pretty
     , async
-    , base >=4.11 && <10
+    , base >=4.11 && <5
     , bytestring
     , conduit
     , conduit-extra
@@ -101,7 +101,7 @@ executable eijiro-util
     , megaparsec
     , optparse-simple
     , regex-tdfa
-    , rio >=0.1.12.0
+    , rio >=0.1.12.0 && <0.2
     , text
     , text-icu
   default-language: Haskell2010
@@ -131,7 +131,7 @@ test-suite eijiro-util-test
       aeson
     , aeson-pretty
     , async
-    , base >=4.11 && <10
+    , base >=4.11 && <5
     , bytestring
     , conduit
     , conduit-extra
@@ -140,7 +140,7 @@ test-suite eijiro-util-test
     , hspec
     , megaparsec
     , regex-tdfa
-    , rio >=0.1.12.0
+    , rio >=0.1.12.0 && <0.2
     , text
     , text-icu
   default-language: Haskell2010
