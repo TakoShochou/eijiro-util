@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Main (main) where
 
@@ -7,7 +6,7 @@ import Data.Version (showVersion)
 import qualified RIO.Text as T
 import Service.AnalyseService
 import Service.ConvertUtf8Service
-import Service.ConvertPstudyService
+import Service.ConvertPstudyService ( runConvertPstudyService, ParserStrategy (MegaParsec, TypedPeg) )
 import RIO.Process
 import Options.Applicative.Simple
 import qualified Paths_eijiro_util
@@ -45,7 +44,8 @@ main = do
     convertPstudyCommand = addCommand "pstudy"
       "Convert Eijiro dictionary data to Pstduy data"
       runConvertPstudyService
-      $ (,,,,,,) <$> appInfo <*> pReadPath <*> pWritePath <*> pConvertLevel <*> pSrcEncoding <*> pDescEncoding <*> pOutputFormat
+      $ (,,,,,,,) <$> appInfo <*> pReadPath <*> pWritePath <*> pConvertLevel
+                  <*> pSrcEncoding <*> pDescEncoding <*> pOutputFormat <*> pParserStrategy
     appInfo :: Parser Text
     appInfo =
       pure
@@ -104,3 +104,16 @@ main = do
       <> metavar "csv|json"
       <> help "specify output format"
       <> showDefault
+    pParserStrategy :: Parser ParserStrategy
+    pParserStrategy = option parserStrategyReader
+      $ long "parser"
+      <> value MegaParsec
+      <> metavar "megaparsec|typedpeg"
+      <> help "switch parser engine"
+      <> showDefault
+      where
+        parserStrategyReader :: ReadM ParserStrategy
+        parserStrategyReader = eitherReader $ \case
+          "megaparsec" -> Right MegaParsec
+          "typedpeg" -> Right TypedPeg
+          _ -> Left "Expected megaparsec or typedpeg"

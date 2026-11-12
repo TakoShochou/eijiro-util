@@ -1,5 +1,6 @@
 module Service.ConvertPstudyService (
   runConvertPstudyService,
+  ParserStrategy(MegaParsec, TypedPeg)
 ) where
 
 import Import
@@ -18,11 +19,13 @@ import qualified Data.Aeson.Encode.Pretty as JSON
 import qualified Model.Dict as D
 import qualified Parser.MegaParsecDictionaryParser as MPDP
 
+data ParserStrategy = MegaParsec | TypedPeg deriving (Eq, Show)
+
 -- TODO use criterion package and runMode function to measure this service
 -- TODO make format option type safe if needed
 
-runConvertPstudyService :: (Text, FilePath, FilePath, Natural, String, String, String) -> RIO App ()
-runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destEncoding, outputFormat) = do
+runConvertPstudyService :: (Text, FilePath, FilePath, Natural, String, String, String, ParserStrategy) -> RIO App ()
+runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destEncoding, outputFormat, parserStrategy) = do
 
   env <- ask
   when env.appOptions.optionsVerbose $ do
