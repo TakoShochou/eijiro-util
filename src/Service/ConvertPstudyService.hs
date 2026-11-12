@@ -1,6 +1,7 @@
 module Service.ConvertPstudyService (
   runConvertPstudyService,
-  ParserStrategy(MegaParsec, TypedPeg)
+  OutputFormat(..),
+  ParserStrategy(..),
 ) where
 
 import Import
@@ -19,12 +20,13 @@ import qualified Data.Aeson.Encode.Pretty as JSON
 import qualified Model.Dict as D
 import qualified Parser.MegaParsecDictionaryParser as MPDP
 
+data OutputFormat = CSV | JSON deriving (Eq, Show)
 data ParserStrategy = MegaParsec | TypedPeg deriving (Eq, Show)
 
 -- TODO use criterion package and runMode function to measure this service
 -- TODO make format option type safe if needed
 
-runConvertPstudyService :: (Text, FilePath, FilePath, Natural, String, String, String, ParserStrategy) -> RIO App ()
+runConvertPstudyService :: (Text, FilePath, FilePath, Natural, String, String, OutputFormat, ParserStrategy) -> RIO App ()
 runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destEncoding, outputFormat, parserStrategy) = do
 
   env <- ask
@@ -37,10 +39,6 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
 
   srcConv <- liftIO $ ICU.open srcEncoding Nothing
   destConv <- liftIO $ ICU.open destEncoding Nothing
-
-  unless (outputFormat `elem` ["csv", "json"]) $ do
-    logError "invalid output format. you can specify csv or json."
-    exitFailure
 
   wholeFlattenDictEntries :: [D.DictEntry] <- runConduitRes $ sourceFile readPath
     .| CB.lines
@@ -67,7 +65,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     (if writePath == "" then pure stdout else openFile writePath WriteMode)
     (\h -> if writePath == "" then pure () else hClose h)
     $ \h -> do -- inside bracket
-      if outputFormat == "json"
+      if outputFormat == JSON
         then do
           liftIO . T.hPutStrLn h $ "{\n\"questions\": ["
           runConduitRes $ yieldMany group

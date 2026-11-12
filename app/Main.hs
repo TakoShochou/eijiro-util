@@ -6,7 +6,7 @@ import Data.Version (showVersion)
 import qualified RIO.Text as T
 import Service.AnalyseService
 import Service.ConvertUtf8Service
-import Service.ConvertPstudyService ( runConvertPstudyService, ParserStrategy (MegaParsec, TypedPeg) )
+import Service.ConvertPstudyService ( runConvertPstudyService, OutputFormat(..), ParserStrategy (..) )
 import RIO.Process
 import Options.Applicative.Simple
 import qualified Paths_eijiro_util
@@ -98,22 +98,35 @@ main = do
       <> metavar "NUMBER"
       <> help "specify the number of lines to be taken"
       <> showDefault
-    pOutputFormat = strOption
+    pOutputFormat :: Parser OutputFormat
+    pOutputFormat = option outputFormatReader
       $ long "format"
-      <> value "csv"
+      <> value CSV
       <> metavar "csv|json"
       <> help "specify output format"
-      <> showDefault
+      <> showDefaultWith defaultValue
+      where
+        outputFormatReader :: ReadM OutputFormat
+        outputFormatReader = eitherReader $ \case
+          "csv" -> Right CSV
+          "json" -> Right JSON
+          _ -> Left "Expected csv or json"
+        defaultValue :: OutputFormat -> String
+        defaultValue CSV = "csv"
+        defaultValue JSON = "json"
     pParserStrategy :: Parser ParserStrategy
     pParserStrategy = option parserStrategyReader
       $ long "parser"
       <> value MegaParsec
       <> metavar "megaparsec|typedpeg"
       <> help "switch parser engine"
-      <> showDefault
+      <> showDefaultWith defaultValue
       where
         parserStrategyReader :: ReadM ParserStrategy
         parserStrategyReader = eitherReader $ \case
           "megaparsec" -> Right MegaParsec
           "typedpeg" -> Right TypedPeg
           _ -> Left "Expected megaparsec or typedpeg"
+        defaultValue :: ParserStrategy -> String
+        defaultValue MegaParsec = "megaparsec"
+        defaultValue TypedPeg = "typedpeg"
