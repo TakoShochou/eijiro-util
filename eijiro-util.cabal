@@ -28,10 +28,13 @@ library
   exposed-modules:
       Import
       Model.Dict
-      Model.Parser
-      Parser.BodyParser
-      Parser.DictionaryParser
-      Parser.HeaderParser
+      Parser.MegaParsecBodyParser
+      Parser.MegaParsecDictionaryParser
+      Parser.MegaParsecHeaderParser
+      Parser.MegaParsecParser
+      Parser.TypedPegBodyParser
+      Parser.TypedPegDictionaryParser
+      Parser.TypedPegHeaderParser
       Service.AnalyseService
       Service.ConvertPstudyService
       Service.ConvertUtf8Service

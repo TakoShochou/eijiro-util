@@ -3,7 +3,14 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/topics/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: typed-peg-0.6.0.0@sha256:5a0d15fc206c506162548d50c0fc5df370bfdb9ab34bdafd60e0340d10c3f29e,3909
+    pantry-tree:
+      sha256: 0fa7a710b9359673f198751691e5d70a910ea7a82d8f9d34707d0ba8ce404350
+      size: 2036
+  original:
+    hackage: typed-peg-0.6.0.0
 snapshots:
 - completed:
     sha256: d90478ae1e8ef7e9ba968834ebe4ecfb8f27f5b9c259b8b01f802b0c0dc999a7

@@ -16,7 +16,7 @@ import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Encode.Pretty as JSON
 
 import qualified Model.Dict as D
-import qualified Parser.DictionaryParser as P
+import qualified Parser.MegaParsecDictionaryParser as MPDP
 
 -- TODO use criterion package and runMode function to measure this service
 -- TODO make format option type safe if needed
@@ -43,7 +43,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     .| CB.lines
     .| mapC (ICU.toUnicode srcConv)
     .| mapC T.strip
-    .| mapC P.runDictionaryParser
+    .| mapC MPDP.runDictionaryParser
     .| filterMC filterAndReportLeft
     .| mapC unliftParserResult
     .| sinkList
@@ -101,15 +101,15 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     printE :: Text -> IO ()
     printE = T.hPutStrLn stderr
 
-    filterAndReportLeft :: P.ParserResult -> ResourceT (RIO App) Bool
+    filterAndReportLeft :: MPDP.ParserResult -> ResourceT (RIO App) Bool
     filterAndReportLeft =
       \case
         Right _ -> pure True
         Left e -> do
-          liftIO . printE . P.tshowParseErrorBundle $ e
+          liftIO . printE . MPDP.tshowParseErrorBundle $ e
           pure False
 
-    unliftParserResult :: P.ParserResult -> D.DictEntry
+    unliftParserResult :: MPDP.ParserResult -> D.DictEntry
     unliftParserResult (Left _) = undefined
     unliftParserResult (Right (h, a)) = (h, a)
 

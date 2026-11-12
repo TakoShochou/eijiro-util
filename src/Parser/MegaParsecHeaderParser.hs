@@ -1,11 +1,13 @@
-module Parser.HeaderParser (pHeader) where
+module Parser.MegaParsecHeaderParser (pHeader) where
+
+import qualified Model.Dict as D
 
 import RIO
 import qualified RIO.Text as T
 import qualified Text.Megaparsec as P
 import qualified Text.Megaparsec.Char.Lexer as PCL
-import Model.Parser (Parser)
-import qualified Model.Dict as D
+import Parser.MegaParsecParser (MegaParsecParser)
+type Parser a = MegaParsecParser a
 
 pHeader :: Parser (D.DictHeader a)
 pHeader = do

@@ -1,13 +1,14 @@
-module Parser.BodyParser (pBody) where
+module Parser.MegaParsecBodyParser (pBody) where
+
+import Model.Dict
 
 import RIO
 import RIO.Char (isPrint)
 import RIO.Set (singleton)
 import qualified RIO.Text as T
 import qualified Text.Megaparsec as P
-
-import Model.Parser (Parser)
-import Model.Dict
+import Parser.MegaParsecParser (MegaParsecParser)
+type Parser a = MegaParsecParser a
 
 pBody :: Parser (DictAttr a)
 pBody = do
