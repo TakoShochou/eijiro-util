@@ -28,6 +28,7 @@ library
   exposed-modules:
       Import
       Model.Dict
+      Model.HeadWordTerminals
       Parser.MegaParsecBodyParser
       Parser.MegaParsecDictionaryParser
       Parser.MegaParsecHeaderParser
