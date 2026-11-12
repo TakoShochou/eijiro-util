@@ -1,8 +1,13 @@
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
+
 module Service.ConvertPstudyService (
   runConvertPstudyService,
   OutputFormat(..),
   ParserStrategy(..),
 ) where
+
+import qualified Model.Dict as D
 
 import Import
 import Data.List ( sortOn )
@@ -17,7 +22,6 @@ import qualified Data.Text.ICU.Convert as ICU
 import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Encode.Pretty as JSON
 
-import qualified Model.Dict as D
 import qualified Parser.MegaParsecDictionaryParser as MPDP
 
 data OutputFormat = CSV | JSON deriving (Eq, Show)
@@ -44,9 +48,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     .| CB.lines
     .| mapC (ICU.toUnicode srcConv)
     .| mapC T.strip
-    .| mapC MPDP.runDictionaryParser
-    .| filterMC filterAndReportLeft
-    .| mapC unliftParserResult
+    .| runParser
     .| sinkList
   when env.appOptions.optionsVerbose $
     liftIO $ printE "processing: all the dictionary data encodings have been converted from Shift JIS to UTF 8, and parsed"
@@ -102,6 +104,17 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     printE :: Text -> IO ()
     printE = T.hPutStrLn stderr
 
+    runParser :: ConduitT Text D.DictEntry _ ()
+    runParser = case parserStrategy of
+      MegaParsec -> parseDictionaryByMegaParsec
+      TypedPeg -> parseDictionaryByTypedPeg
+
+    parseDictionaryByMegaParsec :: ConduitT Text D.DictEntry _ ()
+    parseDictionaryByMegaParsec =
+      mapC MPDP.runDictionaryParser
+      .| filterMC filterAndReportLeft
+      .| mapC unliftParserResult
+
     filterAndReportLeft :: MPDP.ParserResult -> ResourceT (RIO App) Bool
     filterAndReportLeft =
       \case
@@ -113,6 +126,10 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     unliftParserResult :: MPDP.ParserResult -> D.DictEntry
     unliftParserResult (Left _) = undefined
     unliftParserResult (Right (h, a)) = (h, a)
+
+    parseDictionaryByTypedPeg :: ConduitT Text D.DictEntry _ ()
+    parseDictionaryByTypedPeg =
+      mapC $ error "TODO: implement parseDictionaryByTypedPeg"
 
     filterSvl :: Natural -> D.DictEntry -> Bool
     filterSvl targetLevel (_, attr) = do
@@ -225,3 +242,4 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
                 , "pron" JSON..= p
                 , "mispron" JSON..= m
                 ]
+
