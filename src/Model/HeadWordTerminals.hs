@@ -2,6 +2,7 @@ module Model.HeadWordTerminals (headWordTerminals) where
 
 import RIO
 
+-- 辞書の見出し語に使われている全文字
 headWordTerminals :: [Char]
 headWordTerminals =
   [ ' ' -- U+0020

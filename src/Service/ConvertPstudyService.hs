@@ -10,6 +10,7 @@ module Service.ConvertPstudyService (
 import qualified Model.Dict as D
 
 import Import
+import qualified System.Console.ANSI as ANSI
 import Data.List ( sortOn )
 import qualified Data.Map as Map
 import Conduit
@@ -28,13 +29,14 @@ data OutputFormat = CSV | JSON deriving (Eq, Show)
 data ParserStrategy = MegaParsec | TypedPeg deriving (Eq, Show)
 
 -- TODO use criterion package and runMode function to measure this service
--- TODO make format option type safe if needed
-
 runConvertPstudyService :: (Text, FilePath, FilePath, Natural, String, String, OutputFormat, ParserStrategy) -> RIO App ()
 runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destEncoding, outputFormat, parserStrategy) = do
 
   env <- ask
-  when env.appOptions.optionsVerbose $ do
+
+  let isVerbose :: Bool = env.appOptions.optionsVerbose
+
+  when isVerbose $ do
     liftIO . printE $ "processing: ConvertPstudyService begins"
 
   when (level > 12) $ do
@@ -46,21 +48,29 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
 
   wholeFlattenDictEntries :: [D.DictEntry] <- runConduitRes $ sourceFile readPath
     .| CB.lines
-    .| mapC (ICU.toUnicode srcConv)
-    .| mapC T.strip
+    .| numberLines
+    .| mapC (second . ICU.toUnicode $ srcConv)
+    .| mapC (second T.strip)
     .| runParser
+    .| ( if isVerbose
+        then iterMC (liftIO . printProgress)
+        else awaitForever yield
+       )
+    .| mapC snd
     .| sinkList
-  when env.appOptions.optionsVerbose $
-    liftIO $ printE "processing: all the dictionary data encodings have been converted from Shift JIS to UTF 8, and parsed"
+
+  when isVerbose $ do
+    liftIO $ printE ""
+    liftIO $ printE "processing: all the dictionary data have been converted from Shift JIS to UTF 8, and parsed"
 
   let svl :: [D.DictEntry] = if level == 0
       then sortBySvl $ filter (filterSvl level) wholeFlattenDictEntries
       else filter (filterSvl level) wholeFlattenDictEntries
-  when env.appOptions.optionsVerbose $
+  when isVerbose $
     liftIO $ printE "processing: SVL entries have been extracted from the parsed data (evaluation may be deferred due to lazy evaluation)."
 
   let group :: [(D.DictEntry, [D.DictEntry])] = groupifyDictEntries svl wholeFlattenDictEntries
-  when env.appOptions.optionsVerbose $
+  when isVerbose $
     liftIO $ printE "processing: dictionary data listed in SVL have been grouped (evaluation may be deferred due to lazy evaluation)."
 
   bracket
@@ -90,7 +100,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
             .| mapC (if ICU.getName destConv == "UTF-8" then T.encodeUtf8 else ICU.fromUnicode destConv)
             .| sinkHandle h
 
-  when env.appOptions.optionsVerbose $ do
+  when isVerbose $ do
     liftIO . printE $ "processing: ConvertPstudyService ends"
     liftIO . printE $ "src path = " <> T.pack readPath
     liftIO . printE $ "dest path = " <> T.pack writePath
@@ -104,32 +114,56 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     printE :: Text -> IO ()
     printE = T.hPutStrLn stderr
 
-    runParser :: ConduitT Text D.DictEntry _ ()
-    runParser = case parserStrategy of
-      MegaParsec -> parseDictionaryByMegaParsec
-      TypedPeg -> parseDictionaryByTypedPeg
+    printProgress :: (Natural, D.DictEntry) -> IO ()
+    printProgress (lineNum, (head, attr)) = do
+      ANSI.hSetCursorColumn stderr 0
+      ANSI.hClearLine stderr
+      T.hPutStr stderr template
+      hFlush stderr
+      where
+        svl = case D.svl attr of
+          Just n  -> " (svl" <> tshow n <> ")"
+          Nothing -> ""
+        template =
+          "processing: parsed [" <> tshow lineNum <> "] " <> D.word head <> svl
 
-    parseDictionaryByMegaParsec :: ConduitT Text D.DictEntry _ ()
-    parseDictionaryByMegaParsec =
-      mapC MPDP.runDictionaryParser
-      .| filterMC filterAndReportLeft
-      .| mapC unliftParserResult
+    numberLines ::ConduitT a (Natural, a) _ ()
+    numberLines = loop 1
+      where
+        loop n = await >>= \case
+          Nothing -> pure ()
+          Just x -> do
+            yield (n, x)
+            loop (n + 1)
 
-    filterAndReportLeft :: MPDP.ParserResult -> ResourceT (RIO App) Bool
-    filterAndReportLeft =
-      \case
-        Right _ -> pure True
-        Left e -> do
-          liftIO . printE . MPDP.tshowParseErrorBundle $ e
-          pure False
+    runParser :: ConduitT (Natural, Text) (Natural, D.DictEntry) _ ()
+    runParser =
+      case parserStrategy of
+        MegaParsec -> parseDictionaryByMegaParsec
+        TypedPeg -> parseDictionaryByTypedPeg
+      where
+        parseDictionaryByMegaParsec :: ConduitT (Natural, Text) (Natural, D.DictEntry) _ ()
+        parseDictionaryByMegaParsec =
+          mapC (second MPDP.runDictionaryParser)
+          .| filterMC (\(_, result) -> filterAndReportLeft result)
+          .| mapC (second unliftParserResult)
+          where
+            filterAndReportLeft :: MPDP.ParserResult -> _ Bool
+            filterAndReportLeft =
+              \case
+                Right _ -> pure True
+                Left e -> do
+                  liftIO . printE $ ""
+                  liftIO . printE . MPDP.tshowParseErrorBundle $ e
+                  pure False
 
-    unliftParserResult :: MPDP.ParserResult -> D.DictEntry
-    unliftParserResult (Left _) = undefined
-    unliftParserResult (Right (h, a)) = (h, a)
+            unliftParserResult :: MPDP.ParserResult -> D.DictEntry
+            unliftParserResult (Left _) = undefined
+            unliftParserResult (Right (h, a)) = (h, a)
 
-    parseDictionaryByTypedPeg :: ConduitT Text D.DictEntry _ ()
-    parseDictionaryByTypedPeg =
-      mapC $ error "TODO: implement parseDictionaryByTypedPeg"
+        parseDictionaryByTypedPeg :: ConduitT (Natural, Text) (Natural, D.DictEntry) _ ()
+        parseDictionaryByTypedPeg =
+          mapC $ error "TODO: implement parseDictionaryByTypedPeg"
 
     filterSvl :: Natural -> D.DictEntry -> Bool
     filterSvl targetLevel (_, attr) = do
@@ -211,9 +245,7 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
     --     }
     --   ] // questions
     -- }
-    --
-    --
-    --
+
     dictEntryToJson :: (D.DictEntry, [D.DictEntry]) -> Text
     dictEntryToJson ((svlHeader, svlBody), dict) =
         (T.decodeUtf8 . BSL.toStrict . JSON.encodePretty . JSON.object) entry
@@ -242,4 +274,3 @@ runConvertPstudyService (appInfo, readPath, writePath, level, srcEncoding, destE
                 , "pron" JSON..= p
                 , "mispron" JSON..= m
                 ]
-

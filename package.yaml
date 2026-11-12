@@ -1,6 +1,6 @@
 name:                eijiro-util
 synopsis:            Eijiro dictionary data utility
-version:             0.1.0.8
+version:             0.1.0.9
 github:              TakoShochou/pstudy
 license:             BSD-3-Clause
 author:              tako.shochou@gmail.com
@@ -25,6 +25,7 @@ dependencies:
 - rio >= 0.1.12.0 && < 0.2
 - aeson
 - aeson-pretty
+- ansi-terminal
 - async
 - bytestring
 - conduit
@@ -34,6 +35,7 @@ dependencies:
 - regex-tdfa
 - text
 - text-icu
+- typed-peg
 
 ghc-options:
 - -Wall
